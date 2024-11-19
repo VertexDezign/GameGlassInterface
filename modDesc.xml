@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<modDesc descVersion="92">
+  <author>VertexDezign</author>
+  <version>1.0.0.0</version>
+  <title>
+    <en>GameGlass</en>
+    <de>GameGlass</de>
+  </title>
+  <description>
+    <en>
+      <![CDATA[TODO]]>
+    </en>
+    <de>
+      <![CDATA[TODO]]>
+    </de>
+  </description>
+  <iconFilename>icon_gameGlass.png</iconFilename>
+  <multiplayer supported="true"/>
+  <extraSourceFiles>
+    <sourceFile filename="GrisuDebug.lua"/>
+    <sourceFile filename="GameGlass.lua"/>
+  </extraSourceFiles>
+</modDesc>
