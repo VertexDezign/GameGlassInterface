@@ -9,11 +9,15 @@
 local modDirectory = g_currentModDirectory
 local modName = g_currentModName
 
+source(Utils.getFilename("ValueMapper.lua", modDirectory))
+
 ---@class GameGlass
 ---@field debugger GrisuDebug
 ---@field active boolean
+---@field updateTimer number
 GameGlass = {}
-GameGlass.stateFileName = "gameglass.xml"
+GameGlass.STATE_FILE_NAME = "gameGlassInterface.xml"
+GameGlass.XML_VERSION = 1
 
 local GameGlass_mt = Class(GameGlass)
 
@@ -29,6 +33,7 @@ function GameGlass.init()
   self.debugger:debug("GameGlass initialized")
 
   self.active = false
+  self.updateTimer = 0
 
   return self
 end
@@ -36,22 +41,13 @@ end
 function GameGlass:loadMap(filename)
   self.debugger:info("GameGlass loading")
 
-  self.active = false
-
   if g_dedicatedServerInfo == nil then
     self.active = true
     local appPath = getUserProfileAppPath()
-    self.xmlFileLocation = appPath .. GameGlass.stateFileName
+    self.xmlFileLocation = appPath .. GameGlass.STATE_FILE_NAME
   end
-end
 
-function GameGlass:deleteMap()
-end
-
-function GameGlass:mouseEvent(posX, posY, isDown, isUp, button)
-end
-
-function GameGlass:keyEvent(unicode, sym, modifier, isDown)
+  --self.debugger:tPrint("Vehicle",Vehicle)
 end
 
 function GameGlass:update(dt)
@@ -59,13 +55,98 @@ function GameGlass:update(dt)
     return
   end
 
-end
+  self.updateTimer = self.updateTimer + dt
+  -- only update every 500ms
+  if self.updateTimer < 500 then
+    return
+  end
 
-function GameGlass:draw()
+  -- Execute the desired statement
+  local startTime = g_time
+  self:writeXMLFile()
+  local endTime = g_time
+  local elapsedTime = endTime - startTime -- time difference in milliseconds
+  self.debugger:trace(function()
+    return string.format("Wrote xml file (%i ms)", elapsedTime)
+  end)
+
+  -- Reset the timer after execution
+  self.updateTimer = 0
+
+
 end
 
 function GameGlass:writeXMLFile()
   self.debugger:trace("Write xml file")
+
+  -- TODO add xml schema
+  local xml = XMLFile.create("GameGlass", self.xmlFileLocation, "GGI")
+  xml:setInt("GGI#version", GameGlass.XML_VERSION)
+  self:populateXMLFromEnvironment(xml)
+  self:populateXMLFromVehicle(xml)
+  xml:save()
+  xml:delete()
+end
+
+---@param XMLFile
+function GameGlass:populateXMLFromEnvironment(xml)
+  local environment = g_currentMission.environment
+
+  -- export current hour (fixed 24h format)
+  xml:setString("GGI.environment.time", string.format("%02d:%02d", g_currentMission.environment.currentHour, g_currentMission.environment.currentMinute))
+
+  -- TODO add other stuff like day / wheater
+end
+
+---@param XMLFile
+function GameGlass:populateXMLFromVehicle(xml)
+  local vehicle = self.currentVehicle
+  if vehicle == nil then
+    -- no vehicle -> nothing to do
+    return
+  end
+
+  xml:setInt("GGI.vehicle.speed", vehicle:getLastSpeed())
+  xml:setString("GGI.vehicle.speed#unit", "km/h")
+  xml:setString("GGI.vehicle.speed#direction", ValueMapper.mapDirection(vehicle:getDrivingDirection()))
+  self:populateXMLFromMotorized(xml)
+end
+
+function GameGlass:populateXMLFromMotorized(xml)
+  local mSpec = self.currentVehicle.spec_motorized
+  if mSpec == nil then
+    return
+  end
+  -- ignition state
+  xml:setString("GGI.vehicle.motor#state", ValueMapper.mapMotorState(mSpec:getMotorState()))
+
+  -- motor temp
+  xml:setInt("GGI.vehicle.motor.temperatur", mSpec.motorTemperature.value)
+  xml:setInt("GGI.vehicle.motor.temperatur#min", mSpec.motorTemperature.valueMin)
+  xml:setInt("GGI.vehicle.motor.temperatur#max", mSpec.motorTemperature.valueMax)
+  xml:setString("GGI.vehicle.motor.temperatur#unit", "°C")
+
+  -- rpm
+  local motor = mSpec:getMotor()
+  xml:setInt("GGI.vehicle.motor.rpm", motor:getLastMotorRpm())
+  xml:setInt("GGI.vehicle.motor.rpm#min", 0)
+  xml:setInt("GGI.vehicle.motor.rpm#max", motor:getMaxRpm())
+  -- motor load
+  xml:setFloat("GGI.vehicle.motor.load", ValueMapper.mapMotorLoad(motor:getSmoothLoadPercentage()))
+  xml:setInt("GGI.vehicle.motor.load#min", 0)
+  xml:setInt("GGI.vehicle.motor.load#max", 100)
+  xml:setString("GGI.vehicle.motor.load#unit", "%")
+
+  -- TODO fuel levels
+end
+
+---@param Vehicle
+function GameGlass:setCurrentVehicle(vehicle)
+  self.currentVehicle = vehicle
+end
+
+function GameGlass:clearCurrentVehicle()
+  self.currentVehicle = nil
 end
 
 function GameGlass:installSpec(typeManager)

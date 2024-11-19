@@ -25,12 +25,20 @@ end
 
 function GameGlassSpec:onEnterVehicle(isControlling)
   local spec = self.spec_gameGlass
-  spec.debugger:trace("onEnterVehicle")
-  -- currently nothing to do
+  spec.debugger:trace(function()
+    return "onEnterVehicle(" .. tostring(isControlling) .. ")"
+  end)
+
+  --spec.debugger:tPrint("vehicle.self.spec_motorized", self.spec_motorized)
+
+  g_gameGlass:setCurrentVehicle(self)
 end
 
 function GameGlassSpec:onLeaveVehicle(wasEntered)
   local spec = self.spec_gameGlass
-  spec.debugger:trace("onLeaveVehicle")
-  -- currently nothing to do
+  spec.debugger:trace(function()
+    return "onLeaveVehicle(" .. tostring(wasEntered) .. ")"
+  end)
+
+  g_gameGlass:clearCurrentVehicle()
 end
