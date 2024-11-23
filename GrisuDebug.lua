@@ -81,7 +81,10 @@ function GrisuDebug:print(lvl, txt)
   end
 end
 
-local function tprint (tbl, indent)
+---@param tbl table
+---@param indent number
+---@param recursive boolean
+local function tprint (tbl, indent, recursive)
   if not indent then
     indent = 0
   end
@@ -99,8 +102,11 @@ local function tprint (tbl, indent)
     elseif (type(v) == "string") then
       toprint = toprint .. "\"" .. v .. "\",\r\n"
     elseif (type(v) == "table") then
-      -- toprint = toprint .. tprint(v, indent + 2) .. ",\r\n"
-      toprint = toprint .. "table, \r\n"
+      if recursive then
+        toprint = toprint .. tprint(v, indent + 2) .. ",\r\n"
+      else
+        toprint = toprint .. "table, \r\n"
+      end
     else
       toprint = toprint .. "\"" .. tostring(v) .. "\",\r\n"
     end
@@ -111,8 +117,9 @@ end
 
 ---@param name string The name of the table
 ---@param tbl table The table to print all members of
+---@param recursive boolean
 ---@return void
-function GrisuDebug:tPrint(name, tbl)
+function GrisuDebug:tPrint(name, tbl, recursive)
   self:info("Debug Table: '" .. name .. "'")
-  print(tprint(tbl))
+  print(tprint(tbl, 0, recursive))
 end

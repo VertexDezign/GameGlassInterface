@@ -62,13 +62,8 @@ function GameGlass:update(dt)
   end
 
   -- Execute the desired statement
-  local startTime = g_time
   self:writeXMLFile()
-  local endTime = g_time
-  local elapsedTime = endTime - startTime -- time difference in milliseconds
-  self.debugger:trace(function()
-    return string.format("Wrote xml file (%i ms)", elapsedTime)
-  end)
+  self.debugger:trace("Wrote xml file")
 
   -- Reset the timer after execution
   self.updateTimer = 0
@@ -132,12 +127,38 @@ function GameGlass:populateXMLFromMotorized(xml)
   xml:setInt("GGI.vehicle.motor.rpm#min", 0)
   xml:setInt("GGI.vehicle.motor.rpm#max", motor:getMaxRpm())
   -- motor load
-  xml:setFloat("GGI.vehicle.motor.load", ValueMapper.mapMotorLoad(motor:getSmoothLoadPercentage()))
+  xml:setString("GGI.vehicle.motor.load", ValueMapper.mapMotorLoad(motor:getSmoothLoadPercentage()))
   xml:setInt("GGI.vehicle.motor.load#min", 0)
   xml:setInt("GGI.vehicle.motor.load#max", 100)
   xml:setString("GGI.vehicle.motor.load#unit", "%")
+  -- gear
+  xml:setBool("GGI.vehicle.motor.gear#isNeutral", motor:getIsInNeutral())
+  xml:setString("GGI.vehicle.motor.gear#group", motor:getGearGroupToDisplay())
+  xml:setString("GGI.vehicle.motor.gear", motor:getGearToDisplay())
 
-  -- TODO fuel levels
+  for fillTypeIndex, v in pairs(mSpec.consumersByFillType) do
+    self:writeFillUnitToXML(xml, "GGI.vehicle.motor.fillUnits", fillTypeIndex, v.fillUnitIndex)
+  end
+end
+
+---@param path string
+---@param fillTypeIndex number The index of the fillType
+---@param fillUnitIndex number The index of the fillUnit
+function GameGlass:writeFillUnitToXML(xml, path, fillTypeIndex, fillUnitIndex)
+  local capacity = self.currentVehicle:getFillUnitCapacity(fillUnitIndex)
+  local fillLevel = self.currentVehicle:getFillUnitFillLevel(fillUnitIndex)
+  local fillLevelPercentage = self.currentVehicle:getFillUnitFillLevelPercentage(fillUnitIndex)
+  local fillType = g_fillTypeManager:getFillTypeByIndex(fillTypeIndex)
+  local unit = fillType.unitShort
+  local name = fillType.name
+  local title = fillType.title
+
+  local pathType = string.lower(name)
+  xml:setInt(string.format("%s.%s", path, pathType), fillLevel)
+  xml:setString(string.format("%s.%s#title", path, pathType), title)
+  xml:setString(string.format("%s.%s#unit", path, pathType), unit)
+  xml:setInt(string.format("%s.%s#capacity", path, pathType), capacity)
+  xml:setString(string.format("%s.%s#fillLevelPercentage", path, pathType), ValueMapper.mapPercentage(fillLevelPercentage, 0))
 end
 
 ---@param Vehicle
