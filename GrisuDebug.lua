@@ -20,6 +20,15 @@ GrisuDebug.WARNING = 4
 GrisuDebug.ERROR = 5
 GrisuDebug.OFF = 6
 
+function GrisuDebug.parseLogLevel(txt)
+  local lvl = GrisuDebug[txt]
+  if lvl ~= nil and type(lvl) == "number" then
+    return lvl
+  else
+    return GrisuDebug.INFO
+  end
+end
+
 function GrisuDebug:create(name, id)
   local d = {} -- our new object
   setmetatable(d, GrisuDebug) -- make Account handle lookup
@@ -51,6 +60,15 @@ end
 
 function GrisuDebug:error(txt, ...)
   self:print(GrisuDebug.ERROR, txt, ...)
+end
+
+---@param name string The name of the table
+---@param tbl table The table to print all members of
+---@param recursive boolean
+---@return void
+function GrisuDebug:tPrint(name, tbl, recursive)
+  self:info("Debug Table: '" .. name .. "'")
+  print(self:_tprint(tbl, 0, recursive))
 end
 
 function GrisuDebug:print(lvl, txt, ...)
@@ -85,9 +103,12 @@ end
 ---@param tbl table
 ---@param indent number
 ---@param recursive boolean
-local function tprint (tbl, indent, recursive)
+function GrisuDebug:_tprint (tbl, indent, recursive)
   if not indent then
     indent = 0
+  end
+  if tbl == nil then
+    return string.rep(" ", indent) .. "nil"
   end
   local toprint = string.rep(" ", indent) .. "{\r\n"
   indent = indent + 2
@@ -103,8 +124,8 @@ local function tprint (tbl, indent, recursive)
     elseif (type(v) == "string") then
       toprint = toprint .. "\"" .. v .. "\",\r\n"
     elseif (type(v) == "table") then
-      if recursive then
-        toprint = toprint .. tprint(v, indent + 2) .. ",\r\n"
+      if recursive and indent < 10 then
+        toprint = toprint .. self:_tprint(v, indent + 2, recursive) .. ",\r\n"
       else
         toprint = toprint .. "table, \r\n"
       end
@@ -114,13 +135,4 @@ local function tprint (tbl, indent, recursive)
   end
   toprint = toprint .. string.rep(" ", indent - 2) .. "}"
   return toprint
-end
-
----@param name string The name of the table
----@param tbl table The table to print all members of
----@param recursive boolean
----@return void
-function GrisuDebug:tPrint(name, tbl, recursive)
-  self:info("Debug Table: '" .. name .. "'")
-  print(tprint(tbl, 0, recursive))
 end

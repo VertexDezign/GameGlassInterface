@@ -25,3 +25,22 @@ The xml is written directly into the farming simulator directory in the user fol
 Windows: `%USERPROFILE%\Documents\My Games\FarmingSimulator2025\gameGlassInterface.xml`
 
 The schema for the currently written xml looks like this [GameGlassInterfaceSchema](./gameGlassInterfaceSchema.xsd)
+
+## Configuration
+
+The mod has a configuration file named `gameGlassInterfaceSettings.xml` in the modSettings folder. The folder is located
+at the same place where your mod folder is.
+
+````xml
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<GGS version="1">
+    <!-- Disable the xml export, useful for multiplayer where only one person has GameGlass to reduce load on the client -->
+    <exportEnabled>true</exportEnabled>
+    <logging>
+        <!-- Configure log levels for debugging purposes -->
+        <level>INFO</level>
+        <specLevel>INFO</specLevel>
+    </logging>
+</GGS>
+
+````

@@ -13,16 +13,20 @@ source(Utils.getFilename("ValueMapper.lua", modDirectory))
 
 ---@class GameGlass
 ---@field debugger GrisuDebug
----@field active boolean
+---@field exportEnabled boolean
 ---@field updateTimer number
+---@field settingsXmlFile string
 GameGlass = {}
 GameGlass.STATE_FILE_NAME = "gameGlassInterface.xml"
 GameGlass.XML_VERSION = 1
+GameGlass.SETTINGS_XML = "gameGlassInterfaceSettings.xml"
+GameGlass.SETTINGS_XML_VERSION = 1
 
 local GameGlass_mt = Class(GameGlass)
 
 ---@return GameGlass
 function GameGlass.init()
+  ---@type GameGlass
   local self = {}
 
   setmetatable(self, GameGlass_mt)
@@ -30,28 +34,71 @@ function GameGlass.init()
   self.debugger = GrisuDebug:create("GameGlass")
   self.debugger:setLogLvl(GrisuDebug.TRACE)
 
-  self.debugger:debug("GameGlass initialized")
-
-  self.active = false
+  self.exportEnabled = false
+  self.specLogLevel = GrisuDebug.INFO
   self.updateTimer = 0
 
+  local modSettingsDir = getUserProfileAppPath() .. "modSettings/"
+  self.settingsXmlFile = modSettingsDir .. GameGlass.SETTINGS_XML
+
+  if not fileExists(self.settingsXmlFile) then
+    self:writeDefaultSettings()
+  end
+  self:loadSettingsFromFile()
+
+  self.debugger:info("GameGlass initialized")
   return self
 end
 
 function GameGlass:loadMap(filename)
-  self.debugger:info("GameGlass loading")
+  self.debugger:debug("GameGlass loading")
 
   if g_dedicatedServerInfo == nil then
-    self.active = true
     local appPath = getUserProfileAppPath()
     self.xmlFileLocation = appPath .. GameGlass.STATE_FILE_NAME
   end
 
   --self.debugger:tPrint("Vehicle",Vehicle)
+  self.debugger:info("GameGlass loaded")
+end
+
+function GameGlass:writeDefaultSettings()
+  self.debugger:trace("writeDefaultSettings")
+  local xml = XMLFile.create("GGS", self.settingsXmlFile, "GGS")
+
+  xml:setInt("GGS#version", 1)
+  xml:setBool("GGS.exportEnabled", g_dedicatedServerInfo == nil)
+  xml:setString("GGS.logging.level", "INFO")
+  xml:setString("GGS.logging.specLevel", "INFO")
+
+  xml:save()
+  xml:delete()
+end
+
+function GameGlass:loadSettingsFromFile()
+  self.debugger:trace("loadSettingsFromFile")
+  local xml = XMLFile.load("GGS", self.settingsXmlFile)
+
+  local version = xml:getInt("GGS#version", 0)
+  if version ~= GameGlass.SETTINGS_XML_VERSION then
+    --TODO proper handling?
+    self.debugger:error("Unknown settings xml version, setting defaults values")
+    self:writeDefaultSettings()
+  end
+
+  self.exportEnabled = xml:getBool("GGS.exportEnabled", true)
+  local logLevel = xml:getString("GGS.logging.level", "INFO")
+  local specLogLevel = xml:getString("GGS.logging.specLevel", "INFO")
+
+  local parseLogLevel = GrisuDebug.parseLogLevel(logLevel)
+  self.debugger:setLogLvl(parseLogLevel)
+  self.specLogLevel = GrisuDebug.parseLogLevel(specLogLevel)
+
+  xml:delete()
 end
 
 function GameGlass:update(dt)
-  if self.active == false then
+  if self.exportEnabled == false then
     return
   end
 

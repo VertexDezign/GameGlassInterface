@@ -31,8 +31,7 @@ function GameGlassSpec:onLoad(savegame)
     debugger = GrisuDebug:create("GameGlassSpec"),
     actionEvents = {}
   }
-  self.spec_gameGlass.debugger:setLogLvl(GrisuDebug.TRACE)
-
+  self.spec_gameGlass.debugger:setLogLvl(g_gameGlass.specLogLevel)
 end
 
 function GameGlassSpec:onEnterVehicle(isControlling)
