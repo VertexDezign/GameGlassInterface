@@ -4,6 +4,7 @@
 -- @history	    v1.0    - 2016-10-26 - Initial implementation
 -- @history     v1.1    - 2017-09-15 - Add Off Level, add shorthand methods for logging, add support for closures
 -- @history     v1.2    - 2024-11-19 - Add function to print table
+-- @history     v1.3    - 2024-11-24 - Add support for string.format
 -- @Descripion: Providing debug utils
 -- @web: http://grisu118.ch or http://vertexdezign.net
 -- Copyright (C) Grisu118, All Rights Reserved.
@@ -32,27 +33,27 @@ function GrisuDebug:setLogLvl(lvl)
   self.lvl = lvl
 end
 
-function GrisuDebug:trace(txt)
-  self:print(GrisuDebug.TRACE, txt)
+function GrisuDebug:trace(txt, ...)
+  self:print(GrisuDebug.TRACE, txt, ...)
 end
 
-function GrisuDebug:debug(txt)
-  self:print(GrisuDebug.DEBUG, txt)
+function GrisuDebug:debug(txt, ...)
+  self:print(GrisuDebug.DEBUG, txt, ...)
 end
 
-function GrisuDebug:info(txt)
-  self:print(GrisuDebug.INFO, txt)
+function GrisuDebug:info(txt, ...)
+  self:print(GrisuDebug.INFO, txt, ...)
 end
 
-function GrisuDebug:warn(txt)
-  self:print(GrisuDebug.WARNING, txt)
+function GrisuDebug:warn(txt, ...)
+  self:print(GrisuDebug.WARNING, txt, ...)
 end
 
-function GrisuDebug:error(txt)
-  self:print(GrisuDebug.ERROR, txt)
+function GrisuDebug:error(txt, ...)
+  self:print(GrisuDebug.ERROR, txt, ...)
 end
 
-function GrisuDebug:print(lvl, txt)
+function GrisuDebug:print(lvl, txt, ...)
   if lvl < self.lvl then
     return
   end
@@ -71,7 +72,7 @@ function GrisuDebug:print(lvl, txt)
   if type(txt) == "function" then
     text = txt()
   else
-    text = txt
+    text = string.format(tostring(txt), ...)
   end
 
   if (self.id == nil) then

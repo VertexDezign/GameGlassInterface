@@ -93,7 +93,7 @@ function GameGlass:populateXMLFromEnvironment(xml)
   -- TODO add other stuff like day / wheater
 end
 
----@param XMLFile
+---@param xml XMLFile
 function GameGlass:populateXMLFromVehicle(xml)
   local vehicle = self.currentVehicle
   if vehicle == nil then
@@ -105,8 +105,10 @@ function GameGlass:populateXMLFromVehicle(xml)
   xml:setString("GGI.vehicle.speed#unit", "km/h")
   xml:setString("GGI.vehicle.speed#direction", ValueMapper.mapDirection(vehicle:getDrivingDirection()))
   self:populateXMLFromMotorized(xml)
+  self:populateXMLFromAttacherJoints(xml)
 end
 
+---@param xml XMLFile
 function GameGlass:populateXMLFromMotorized(xml)
   local mSpec = self.currentVehicle.spec_motorized
   if mSpec == nil then
@@ -141,6 +143,7 @@ function GameGlass:populateXMLFromMotorized(xml)
   end
 end
 
+---@param xml XMLFile
 ---@param path string
 ---@param fillTypeIndex number The index of the fillType
 ---@param fillUnitIndex number The index of the fillUnit
@@ -161,7 +164,31 @@ function GameGlass:writeFillUnitToXML(xml, path, fillTypeIndex, fillUnitIndex)
   xml:setString(string.format("%s.%s#fillLevelPercentage", path, pathType), ValueMapper.mapPercentage(fillLevelPercentage, 0))
 end
 
----@param Vehicle
+---@param xml XMLFile
+function GameGlass:populateXMLFromAttacherJoints(xml)
+  local ajSpec = self.currentVehicle.spec_attacherJoints
+
+  -- check if the current vehicle has attacher joins
+  if ajSpec == nil then
+    return
+  end
+
+  for index, attachedImplement in pairs(ajSpec.attachedImplements) do
+    local position = self.currentVehicle:ggiGetAttacherJointPosition(attachedImplement)
+
+    -- lua table index starts with 1, but xml index must start with 0
+    local xmlBasePath = string.format("GGI.vehicle.attacher(%d)", index - 1)
+    xml:setString(string.format("%s#position", xmlBasePath), position)
+
+    ---@type Vehicle
+    local object = attachedImplement.object
+    if object ~= nil then
+      xml:setString(xmlBasePath, object:getName())
+    end
+  end
+end
+
+---@param vehicle GameGlassSpec
 function GameGlass:setCurrentVehicle(vehicle)
   self.currentVehicle = vehicle
 end
