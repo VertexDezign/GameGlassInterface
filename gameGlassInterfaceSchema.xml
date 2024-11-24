@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+    <xs:element name="GGI">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="environment">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="time" type="xs:string"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="vehicle">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="speed">
+                                <xs:complexType>
+                                    <xs:simpleContent>
+                                        <xs:extension base="xs:integer">
+                                            <xs:attribute name="unit" type="xs:string" use="required"/>
+                                            <xs:attribute name="direction" type="xs:string" use="required"/>
+                                        </xs:extension>
+                                    </xs:simpleContent>
+                                </xs:complexType>
+                            </xs:element>
+                            <xs:element name="motor">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="temperatur">
+                                            <xs:complexType>
+                                                <xs:simpleContent>
+                                                    <xs:extension base="xs:integer">
+                                                        <xs:attribute name="min" type="xs:integer" use="required"/>
+                                                        <xs:attribute name="max" type="xs:integer" use="required"/>
+                                                        <xs:attribute name="unit" type="xs:string" use="required"/>
+                                                    </xs:extension>
+                                                </xs:simpleContent>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <xs:element name="rpm">
+                                            <xs:complexType>
+                                                <xs:simpleContent>
+                                                    <xs:extension base="xs:integer">
+                                                        <xs:attribute name="min" type="xs:integer" use="required"/>
+                                                        <xs:attribute name="max" type="xs:integer" use="required"/>
+                                                    </xs:extension>
+                                                </xs:simpleContent>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <xs:element name="load">
+                                            <xs:complexType>
+                                                <xs:simpleContent>
+                                                    <xs:extension base="xs:decimal">
+                                                        <xs:attribute name="min" type="xs:integer" use="required"/>
+                                                        <xs:attribute name="max" type="xs:integer" use="required"/>
+                                                        <xs:attribute name="unit" type="xs:string" use="required"/>
+                                                    </xs:extension>
+                                                </xs:simpleContent>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <xs:element name="gear">
+                                            <xs:complexType>
+                                                <xs:simpleContent>
+                                                    <xs:extension base="xs:string">
+                                                        <xs:attribute name="isNeutral" type="xs:boolean"
+                                                                      use="required"/>
+                                                        <xs:attribute name="group" type="xs:string" use="required"/>
+                                                    </xs:extension>
+                                                </xs:simpleContent>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <xs:element name="fillUnits">
+                                            <xs:complexType>
+                                                <xs:sequence>
+                                                    <xs:element name="fillUnit" type="FillUnitType"
+                                                                maxOccurs="unbounded"/>
+                                                </xs:sequence>
+                                            </xs:complexType>
+                                        </xs:element>
+                                    </xs:sequence>
+                                    <xs:attribute name="state" type="xs:string" use="required"/>
+                                </xs:complexType>
+                            </xs:element>
+                            <xs:element name="attacher" maxOccurs="unbounded">
+                                <xs:complexType>
+                                    <xs:simpleContent>
+                                        <xs:extension base="xs:string">
+                                            <xs:attribute name="position" type="xs:string" use="required"/>
+                                        </xs:extension>
+                                    </xs:simpleContent>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+            <xs:attribute name="version" type="xs:string" use="required"/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:complexType name="FillUnitType">
+        <xs:simpleContent>
+            <xs:extension base="xs:integer">
+                <xs:attribute name="title" type="xs:string" use="required"/>
+                <xs:attribute name="unit" type="xs:string" use="required"/>
+                <xs:attribute name="capacity" type="xs:integer" use="required"/>
+                <xs:attribute name="fillLevelPercentage" type="xs:integer" use="required"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
+</xs:schema>
