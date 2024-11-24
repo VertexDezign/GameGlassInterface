@@ -74,10 +74,9 @@ end
 function GameGlass:writeXMLFile()
   self.debugger:trace("Write xml file")
 
-  -- TODO add xml schema
   local xml = XMLFile.create("GameGlass", self.xmlFileLocation, "GGI")
   xml:setInt("GGI#version", GameGlass.XML_VERSION)
-  xml:setString("GGI#xmlns:xsi", "https://www.w3.org/2001/XMLSchema-instance")
+  xml:setString("GGI#xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
   xml:setString("GGI#xsi:noNamespaceSchemaLocation", "https://raw.githubusercontent.com/VertexDezign/GameGlassInterface/refs/heads/main/gameGlassInterfaceSchema.xsd")
   self:populateXMLFromEnvironment(xml)
   self:populateXMLFromVehicle(xml)
