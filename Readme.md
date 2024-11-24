@@ -24,4 +24,4 @@ Link to Discord Post: [GameGlass Discord](https://discord.com/channels/522506741
 The xml is written directly into the farming simulator directory in the user folder, right besides your mod folder.
 Windows: `%USERPROFILE%\Documents\My Games\FarmingSimulator2025\gameGlassInterface.xml`
 
-The schema for the currently written xml looks like this [GameGlassInterfaceSchema](./gameGlassInterfaceSchema.xml)
+The schema for the currently written xml looks like this [GameGlassInterfaceSchema](./gameGlassInterfaceSchema.xsd)
