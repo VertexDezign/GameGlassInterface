@@ -32,7 +32,12 @@ function GameGlass.init()
 
   self.debugger:debug("GameGlass initialized")
 
-  self.active = false
+  self.debugger:tPrint("Gui", Gui)
+  self.debugger:tPrint("g_gui.frames.ingameMenuSettings", g_gui.frames.ingameMenuSettings)
+  self.debugger:tPrint("InGameMenuSettingsFrame", InGameMenuSettingsFrame)
+  self.debugger:tPrint("g_gui.guis.InGameMenu", g_gui.guis.InGameMenu)
+
+  self.exportEnabled = false
   self.updateTimer = 0
 
   return self
@@ -42,7 +47,7 @@ function GameGlass:loadMap(filename)
   self.debugger:info("GameGlass loading")
 
   if g_dedicatedServerInfo == nil then
-    self.active = true
+    self.exportEnabled = true
     local appPath = getUserProfileAppPath()
     self.xmlFileLocation = appPath .. GameGlass.STATE_FILE_NAME
   end
@@ -51,7 +56,7 @@ function GameGlass:loadMap(filename)
 end
 
 function GameGlass:update(dt)
-  if self.active == false then
+  if self.exportEnabled == false then
     return
   end
 
@@ -198,6 +203,59 @@ function GameGlass:clearCurrentVehicle()
   self.currentVehicle = nil
 end
 
+function GameGlass:setExportEnabled(state)
+  self.exportEnabled = state
+end
+
+---Injects a checkbox in the InGameMenuGameSettingsFrame
+function GameGlass.initGui(self)
+  if not self.createdGuiForGGI then
+    local row = self.checkUseEasyArmControl.parent:clone()
+    self.ggiExportState = row.elements[1]
+    self.ggiExportState.target = g_gameGlass
+    self.ggiExportState.id = "gameGlassInterface"
+    self.ggiExportState:setCallback("onClickCallback", "onGameGlassExportChanged")
+
+    GrisuDebug:create("GGGui"):tPrint("checkUseEasyArmControl", self.checkUseEasyArmControl, true)
+    GrisuDebug:create("GGGui"):tPrint("checkUseEasyArmControl.parent", self.checkUseEasyArmControl.parent, true)
+
+    local settingTitle = row.elements[]
+    local toolTip = self.ggiExportState.elements[6]
+
+    settingTitle:setText(g_i18n:getText("setting_ggiExport"))
+    --toolTip:setText(g_i18n:getText("toolTip_ggiExport"))
+
+    self.ggiExportState:setIsChecked(g_gameGlass.exportEnabled)
+
+    local title = TextElement.new()
+    title:applyProfile("fs25_settingsSectionHeader", true)
+    title:setText(g_i18n:getText("title_ggiExport"))
+
+    GrisuDebug:create("GGGui"):tPrint("self", self)
+    --GrisuDebug:create("GGGui"):tPrint("self.subCategoryTabs", self.subCategoryTabs[2].elements, true)
+    GrisuDebug:create("GGGui"):tPrint("self.subCategoryPages", self.subCategoryPages[2].elements[1].elements, true)
+
+    self.subCategoryPages[2].elements[1]:addElement(title)
+    self.subCategoryPages[2].elements[1]:addElement(self.row)
+
+    GrisuDebug:create("GGGui"):tPrint("self.subCategoryPages", self.subCategoryPages[2].elements[1].elements, true)
+
+    self.createdGuiForGGI = true
+  end
+end
+
+---Updates the checkbox once the InGameMenuGameSettingsFrame is opened.
+function GameGlass.updateGui(self)
+  if self.createdGuiForGGI and self.ggiWriteXML ~= nil then
+    self.ggiWriteXML:setIsChecked(g_gameGlass.exportEnabled)
+  end
+end
+
+---Called on checkbox change.
+function GameGlass:onGameGlassExportChanged(state)
+  self:setExportEnabled(state == CheckedOptionElement.STATE_CHECKED)
+end
+
 function GameGlass:installSpec(typeManager)
   -- register spec
   g_specializationManager:addSpecialization("gameGlassSpec", "GameGlassSpec", Utils.getFilename("GameGlassSpec.lua", modDirectory), nil)
@@ -231,6 +289,10 @@ local function init()
   g_gameGlass = GameGlass.init()
   -- install spec
   TypeManager.validateTypes = Utils.prependedFunction(TypeManager.validateTypes, installSpec)
+
+  -- register ingame settings
+  InGameMenuSettingsFrame.onFrameOpen = Utils.appendedFunction(InGameMenuSettingsFrame.onFrameOpen, GameGlass.initGui)
+  InGameMenuSettingsFrame.updateGameSettings = Utils.appendedFunction(InGameMenuSettingsFrame.updateGameSettings, GameGlass.updateGui)
 
   -- add event listener
   addModEventListener(g_gameGlass)
