@@ -20,7 +20,7 @@
                                     <xs:simpleContent>
                                         <xs:extension base="xs:integer">
                                             <xs:attribute name="unit" type="xs:string" use="required"/>
-                                            <xs:attribute name="direction" type="xs:string" use="required"/>
+                                            <xs:attribute name="direction" type="DriveDirection" use="required"/>
                                         </xs:extension>
                                     </xs:simpleContent>
                                 </xs:complexType>
@@ -79,7 +79,7 @@
                                             </xs:complexType>
                                         </xs:element>
                                     </xs:sequence>
-                                    <xs:attribute name="state" type="xs:string" use="required"/>
+                                    <xs:attribute name="state" type="MotorState" use="required"/>
                                 </xs:complexType>
                             </xs:element>
                             <xs:element name="attacher" maxOccurs="unbounded">
@@ -120,4 +120,19 @@
     <xs:element name="electriccharge" substitutionGroup="motorFillUnit"/>
     <xs:element name="methane" substitutionGroup="motorFillUnit"/>
 
+    <xs:simpleType name="DriveDirection">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="FORWARD"/>
+            <xs:enumeration value="BACKWARD"/>
+            <xs:enumeration value="STOPPED"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="MotorState">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="OFF"/>
+            <xs:enumeration value="STARTING"/>
+            <xs:enumeration value="ON"/>
+        </xs:restriction>
+    </xs:simpleType>
 </xs:schema>
