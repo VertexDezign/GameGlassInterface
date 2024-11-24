@@ -82,7 +82,7 @@
                                     <xs:attribute name="state" type="MotorState" use="required"/>
                                 </xs:complexType>
                             </xs:element>
-                            <xs:element name="attacher" maxOccurs="unbounded">
+                            <xs:element name="attacher" minOccurs="0" maxOccurs="unbounded">
                                 <xs:complexType>
                                     <xs:simpleContent>
                                         <xs:extension base="xs:string">
@@ -92,7 +92,9 @@
                                 </xs:complexType>
                             </xs:element>
                         </xs:sequence>
+                        <xs:attribute name="name" type="xs:string" use="required"/>
                     </xs:complexType>
+                    
                 </xs:element>
             </xs:sequence>
             <xs:attribute name="version" type="xs:string" use="required"/>

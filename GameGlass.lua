@@ -131,7 +131,7 @@ function GameGlass:writeXMLFile()
   xml:delete()
 end
 
----@param XMLFile
+---@param xml XMLFile
 function GameGlass:populateXMLFromEnvironment(xml)
   local environment = g_currentMission.environment
 
@@ -150,6 +150,7 @@ function GameGlass:populateXMLFromVehicle(xml)
   end
 
   xml:setInt("GGI.vehicle.speed", vehicle:getLastSpeed())
+  xml:setString("GGI.vehicle#name", vehicle:getFullName())
   xml:setString("GGI.vehicle.speed#unit", "km/h")
   xml:setString("GGI.vehicle.speed#direction", ValueMapper.mapDirection(vehicle:getDrivingDirection()))
   self:populateXMLFromMotorized(xml)
@@ -231,7 +232,7 @@ function GameGlass:populateXMLFromAttacherJoints(xml)
     ---@type Vehicle
     local object = attachedImplement.object
     if object ~= nil then
-      xml:setString(xmlBasePath, object:getName())
+      xml:setString(xmlBasePath, object:getFullName())
     end
   end
 end
