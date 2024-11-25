@@ -116,7 +116,51 @@ end
 
 function GameGlassSpec:actionEventFold(actionName, inputValue, callbackState, isAnalog)
   self.spec_gameGlass.debugger:trace("actionEventFold called with actionName: %s, inputValue: %s, callbackState: %s, isAnalog: %s", actionName, inputValue, callbackState, isAnalog)
-  --TODO
+  local isPowered, powerWarning = self:getIsPowered()
+
+  self:ggiActionEvent(actionName, function(object, attachedImplement, forceState)
+    if object.spec_foldable == nil then
+      return forceState
+    end
+
+    local fSpec = object.spec_foldable
+    if #fSpec.foldingParts > 0 then
+      local direction = object:getToggledFoldDirection()
+      local allowed, warning = object:getIsFoldAllowed(direction, false)
+      local requiresPower = fSpec.requiresPower
+      local newState = forceState
+
+      if allowed and (not requiresPower or isPowered) then
+        if newState == nil then
+          newState = direction == fSpec.turnOnFoldDirection
+        end
+        if newState then
+          object:setFoldState(direction, true)
+        else
+          object:setFoldState(direction, false)
+
+          if object:getIsFoldMiddleAllowed() and object.getAttacherVehicle ~= nil then
+            local attacherVehicle = object:getAttacherVehicle()
+            local attacherJointIndex = attacherVehicle:getAttacherJointIndexFromObject(object)
+
+            if attacherJointIndex ~= nil then
+              local moveDown = attacherVehicle:getJointMoveDown(attacherJointIndex)
+              local targetMoveDown = direction == fSpec.turnOnFoldDirection
+
+              if targetMoveDown ~= moveDown then
+                attacherVehicle:setJointMoveDown(attacherJointIndex, targetMoveDown)
+              end
+            end
+          end
+        end
+        return newState
+      elseif warning ~= nil then
+        g_currentMission:showBlinkingWarning(warning, 2000)
+      elseif powerWarning ~= nil then
+        g_currentMission:showBlinkingWarning(powerWarning, 2000)
+      end
+    end
+  end)
 end
 
 function GameGlassSpec:actionEventActivate(actionName, inputValue, callbackState, isAnalog)
