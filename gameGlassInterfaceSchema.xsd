@@ -8,6 +8,7 @@
                 <xs:element name="environment">
                     <xs:complexType>
                         <xs:sequence>
+                            <xs:element name="date" type="xs:string"/>
                             <xs:element name="time" type="xs:string"/>
                         </xs:sequence>
                     </xs:complexType>
@@ -21,6 +22,15 @@
                                         <xs:extension base="xs:integer">
                                             <xs:attribute name="unit" type="xs:string" use="required"/>
                                             <xs:attribute name="direction" type="DriveDirection" use="required"/>
+                                        </xs:extension>
+                                    </xs:simpleContent>
+                                </xs:complexType>
+                            </xs:element>
+                            <xs:element name="operatingTime">
+                                <xs:complexType>
+                                    <xs:simpleContent>
+                                        <xs:extension base="xs:string">
+                                            <xs:attribute name="unit" type="xs:string" use="required"/>
                                         </xs:extension>
                                     </xs:simpleContent>
                                 </xs:complexType>
@@ -129,6 +139,44 @@
                                         </xs:element>
                                     </xs:sequence>
                                     <xs:attribute name="state" type="MotorState" use="required"/>
+                                </xs:complexType>
+                            </xs:element>
+                            <xs:element name="lights" minOccurs="0">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="indicator">
+                                            <xs:complexType>
+                                                <xs:attribute name="left" type="xs:boolean" use="required"/>
+                                                <xs:attribute name="right" type="xs:boolean" use="required"/>
+                                                <xs:attribute name="hazard" type="xs:boolean" use="required"/>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <xs:element name="beaconLight">
+                                            <xs:complexType>
+                                                <xs:simpleContent>
+                                                    <xs:extension base="xs:boolean"/>
+                                                </xs:simpleContent>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <xs:element name="light">
+                                            <xs:complexType>
+                                                <xs:attribute name="lowBeam" type="xs:boolean" use="required"/>
+                                                <xs:attribute name="highBeam" type="xs:boolean" use="required"/>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <xs:element name="workLight">
+                                            <xs:complexType>
+                                                <xs:attribute name="front" type="xs:boolean" use="required"/>
+                                                <xs:attribute name="back" type="xs:boolean" use="required"/>
+                                            </xs:complexType>
+                                        </xs:element>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                            <xs:element name="cruiseControl" minOccurs="0">
+                                <xs:complexType>
+                                    <xs:attribute name="targetSpeed" type="xs:integer"/>
+                                    <xs:attribute name="active" type="xs:boolean"/>
                                 </xs:complexType>
                             </xs:element>
                             <xs:element name="attacher" minOccurs="0" maxOccurs="unbounded">

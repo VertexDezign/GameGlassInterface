@@ -282,9 +282,10 @@ function GameGlass:populateXMLWithSupportSystems(xml)
   local vehicle = self.currentVehicle
   local dSpec = vehicle.spec_drivable
 
+  -- TODO
   -- gps
-  xml:setString("GGI.vehicle.gps#mode", "AI")
-  xml:setBool("GGI.vehicle.gps#active", false)
+  --xml:setString("GGI.vehicle.gps#mode", "AI")
+  --xml:setBool("GGI.vehicle.gps#active", false)
 
   -- cruise control
   if dSpec ~= nil then
