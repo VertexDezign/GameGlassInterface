@@ -74,7 +74,56 @@
                                         <xs:element name="fillUnits">
                                             <xs:complexType>
                                                 <xs:sequence>
-                                                    <xs:element ref="motorFillUnit" maxOccurs="unbounded"/>
+                                                    <xs:element name="fuel">
+                                                        <xs:complexType>
+                                                            <xs:simpleContent>
+                                                                <xs:extension base="xs:integer">
+                                                                    <xs:attribute name="type" type="xs:string"
+                                                                                  use="required"/>
+                                                                    <xs:attribute name="title" type="xs:string"
+                                                                                  use="required"/>
+                                                                    <xs:attribute name="unit" type="xs:string"
+                                                                                  use="required"/>
+                                                                    <xs:attribute name="capacity" type="xs:integer"
+                                                                                  use="required"/>
+                                                                    <xs:attribute name="fillLevelPercentage"
+                                                                                  type="xs:integer" use="required"/>
+                                                                </xs:extension>
+                                                            </xs:simpleContent>
+                                                        </xs:complexType>
+                                                    </xs:element>
+                                                    <xs:element name="def" minOccurs="0">
+                                                        <xs:complexType>
+                                                            <xs:simpleContent>
+                                                                <xs:extension base="xs:integer">
+                                                                    <xs:attribute name="title" type="xs:string"
+                                                                                  use="required"/>
+                                                                    <xs:attribute name="unit" type="xs:string"
+                                                                                  use="required"/>
+                                                                    <xs:attribute name="capacity" type="xs:integer"
+                                                                                  use="required"/>
+                                                                    <xs:attribute name="fillLevelPercentage"
+                                                                                  type="xs:integer" use="required"/>
+                                                                </xs:extension>
+                                                            </xs:simpleContent>
+                                                        </xs:complexType>
+                                                    </xs:element>
+                                                    <xs:element name="air" minOccurs="0">
+                                                        <xs:complexType>
+                                                            <xs:simpleContent>
+                                                                <xs:extension base="xs:integer">
+                                                                    <xs:attribute name="title" type="xs:string"
+                                                                                  use="required"/>
+                                                                    <xs:attribute name="unit" type="xs:string"
+                                                                                  use="required"/>
+                                                                    <xs:attribute name="capacity" type="xs:integer"
+                                                                                  use="required"/>
+                                                                    <xs:attribute name="fillLevelPercentage"
+                                                                                  type="xs:integer" use="required"/>
+                                                                </xs:extension>
+                                                            </xs:simpleContent>
+                                                        </xs:complexType>
+                                                    </xs:element>
                                                 </xs:sequence>
                                             </xs:complexType>
                                         </xs:element>
@@ -94,33 +143,11 @@
                         </xs:sequence>
                         <xs:attribute name="name" type="xs:string" use="required"/>
                     </xs:complexType>
-                    
                 </xs:element>
             </xs:sequence>
             <xs:attribute name="version" type="xs:string" use="required"/>
         </xs:complexType>
     </xs:element>
-
-    <!-- Abstract base element with the specified attribute -->
-    <xs:element name="motorFillUnit" abstract="true">
-        <xs:complexType>
-            <xs:simpleContent>
-                <xs:extension base="xs:integer">
-                    <xs:attribute name="title" type="xs:string" use="required"/>
-                    <xs:attribute name="unit" type="xs:string" use="required"/>
-                    <xs:attribute name="capacity" type="xs:integer" use="required"/>
-                    <xs:attribute name="fillLevelPercentage" type="xs:integer" use="required"/>
-                </xs:extension>
-            </xs:simpleContent>
-        </xs:complexType>
-    </xs:element>
-
-    <!-- Concrete substitutable elements, there might be more, as mods could add new ones -->
-    <xs:element name="diesel" substitutionGroup="motorFillUnit"/>
-    <xs:element name="def" substitutionGroup="motorFillUnit"/>
-    <xs:element name="air" substitutionGroup="motorFillUnit"/>
-    <xs:element name="electriccharge" substitutionGroup="motorFillUnit"/>
-    <xs:element name="methane" substitutionGroup="motorFillUnit"/>
 
     <xs:simpleType name="DriveDirection">
         <xs:restriction base="xs:string">

@@ -9,6 +9,7 @@
 local modDirectory = g_currentModDirectory
 local modName = g_currentModName
 
+source(Utils.getFilename("Set.lua", modDirectory .. "util/"))
 source(Utils.getFilename("ValueMapper.lua", modDirectory))
 
 ---@class GameGlass
@@ -21,6 +22,8 @@ GameGlass.STATE_FILE_NAME = "gameGlassInterface.xml"
 GameGlass.XML_VERSION = 1
 GameGlass.SETTINGS_XML = "gameGlassInterfaceSettings.xml"
 GameGlass.SETTINGS_XML_VERSION = 1
+
+GameGlass.mainFuelTypes = Set:new({ "DIESEL", "ELECTRICCHARGE", "METHANE" })
 
 local GameGlass_mt = Class(GameGlass)
 
@@ -188,19 +191,44 @@ function GameGlass:populateXMLFromMotorized(xml)
   xml:setString("GGI.vehicle.motor.gear", motor:getGearToDisplay())
 
   for fillTypeIndex, v in pairs(mSpec.consumersByFillType) do
-    self:writeFillUnitToXML(xml, "GGI.vehicle.motor.fillUnits", fillTypeIndex, v.fillUnitIndex)
+    local fillType = g_fillTypeManager:getFillTypeByIndex(fillTypeIndex)
+    if GameGlass.mainFuelTypes:contains(fillType.name) then
+      self:writeFuelFillUnitToXML(xml, "GGI.vehicle.motor.fillUnits", fillType, v.fillUnitIndex)
+    else
+      self:writeSecondaryMotorFillUnitToXML(xml, "GGI.vehicle.motor.fillUnits", fillType, v.fillUnitIndex)
+    end
   end
 end
 
 ---@param xml XMLFile
 ---@param path string
----@param fillTypeIndex number The index of the fillType
+---@param fillType table The fill type table
 ---@param fillUnitIndex number The index of the fillUnit
-function GameGlass:writeFillUnitToXML(xml, path, fillTypeIndex, fillUnitIndex)
+function GameGlass:writeFuelFillUnitToXML(xml, path, fillType, fillUnitIndex)
   local capacity = self.currentVehicle:getFillUnitCapacity(fillUnitIndex)
   local fillLevel = self.currentVehicle:getFillUnitFillLevel(fillUnitIndex)
   local fillLevelPercentage = self.currentVehicle:getFillUnitFillLevelPercentage(fillUnitIndex)
-  local fillType = g_fillTypeManager:getFillTypeByIndex(fillTypeIndex)
+  local unit = fillType.unitShort
+  local name = fillType.name
+  local title = fillType.title
+
+  local type = string.lower(name)
+  xml:setInt(string.format("%s.fuel", path), fillLevel)
+  xml:setString(string.format("%s.fuel#type", path), type)
+  xml:setString(string.format("%s.fuel#title", path), title)
+  xml:setString(string.format("%s.fuel#unit", path), unit)
+  xml:setInt(string.format("%s.fuel#capacity", path), capacity)
+  xml:setString(string.format("%s.fuel#fillLevelPercentage", path), ValueMapper.mapPercentage(fillLevelPercentage, 0))
+end
+
+---@param xml XMLFile
+---@param path string
+---@param fillType table The fill type table
+---@param fillUnitIndex number The index of the fillUnit
+function GameGlass:writeSecondaryMotorFillUnitToXML(xml, path, fillType, fillUnitIndex)
+  local capacity = self.currentVehicle:getFillUnitCapacity(fillUnitIndex)
+  local fillLevel = self.currentVehicle:getFillUnitFillLevel(fillUnitIndex)
+  local fillLevelPercentage = self.currentVehicle:getFillUnitFillLevelPercentage(fillUnitIndex)
   local unit = fillType.unitShort
   local name = fillType.name
   local title = fillType.title
