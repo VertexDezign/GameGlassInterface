@@ -48,7 +48,6 @@ function ValueMapper.mapPercentage(value, decimals)
   return string.format("%." .. tostring(decimals) .. "f", percentage)
 end
 
-
 ---@param operatingTime number operation time in milliseconds
 function ValueMapper.formatOperatingTime(operatingTime)
   -- Convert milliseconds to minutes
@@ -65,4 +64,16 @@ function ValueMapper.formatOperatingTime(operatingTime)
   local formattedTime = string.format("%d.%s", hours, string.sub(remainingMinutesString, 3))
 
   return formattedTime
+end
+
+---@param currentPeriod number
+---@return number
+function ValueMapper.mapPeriodToMonth(currentPeriod)
+  local adapted = (currentPeriod + 2) % 12
+
+  if adapted == 0 then
+    return 12
+  else
+    return adapted
+  end
 end

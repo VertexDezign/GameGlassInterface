@@ -138,6 +138,8 @@ end
 function GameGlass:populateXMLFromEnvironment(xml)
   local environment = g_currentMission.environment
 
+  -- set initial year to 2024, when the game was released
+  xml:setString("GGI.environment.date", string.format("%02d.%02d.%04d", environment.currentDayInPeriod, ValueMapper.mapPeriodToMonth(environment.currentPeriod), 2023 + environment.currentYear))
   -- export current time (fixed 24h format)
   xml:setString("GGI.environment.time", string.format("%02d:%02d", environment.currentHour, environment.currentMinute))
 
