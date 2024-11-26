@@ -83,7 +83,7 @@
                                         </xs:element>
                                         <xs:element name="fillUnits">
                                             <xs:complexType>
-                                                <xs:sequence>
+                                                <xs:all>
                                                     <xs:element name="fuel">
                                                         <xs:complexType>
                                                             <xs:simpleContent>
@@ -134,7 +134,7 @@
                                                             </xs:simpleContent>
                                                         </xs:complexType>
                                                     </xs:element>
-                                                </xs:sequence>
+                                                </xs:all>
                                             </xs:complexType>
                                         </xs:element>
                                     </xs:sequence>
