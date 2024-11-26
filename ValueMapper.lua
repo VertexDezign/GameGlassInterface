@@ -47,3 +47,22 @@ function ValueMapper.mapPercentage(value, decimals)
   local percentage = value * 100
   return string.format("%." .. tostring(decimals) .. "f", percentage)
 end
+
+
+---@param operatingTime number operation time in milliseconds
+function ValueMapper.formatOperatingTime(operatingTime)
+  -- Convert milliseconds to minutes
+  local totalMinutes = operatingTime / 60000
+
+  -- Calculate full hours
+  local hours = math.floor(totalMinutes / 60)
+
+  -- Calculate remaining minutes as a decimal rounded to two decimals
+  local remainingMinutes = (totalMinutes - (hours * 60)) / 60
+  local remainingMinutesString = string.format("%.2f", remainingMinutes)
+
+  -- Combine hours and remaining minutes as a string
+  local formattedTime = string.format("%d.%s", hours, string.sub(remainingMinutesString, 3))
+
+  return formattedTime
+end

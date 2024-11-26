@@ -138,8 +138,8 @@ end
 function GameGlass:populateXMLFromEnvironment(xml)
   local environment = g_currentMission.environment
 
-  -- export current hour (fixed 24h format)
-  xml:setString("GGI.environment.time", string.format("%02d:%02d", g_currentMission.environment.currentHour, g_currentMission.environment.currentMinute))
+  -- export current time (fixed 24h format)
+  xml:setString("GGI.environment.time", string.format("%02d:%02d", environment.currentHour, environment.currentMinute))
 
   -- TODO add other stuff like day / wheater
 end
@@ -156,7 +156,17 @@ function GameGlass:populateXMLFromVehicle(xml)
   xml:setString("GGI.vehicle#name", vehicle:getFullName())
   xml:setString("GGI.vehicle.speed#unit", "km/h")
   xml:setString("GGI.vehicle.speed#direction", ValueMapper.mapDirection(vehicle:getDrivingDirection()))
+  xml:setString("GGI.vehicle.operatingTime", ValueMapper.formatOperatingTime(vehicle.operatingTime))
+  xml:setString("GGI.vehicle.operatingTime#unit", "h")
   self:populateXMLFromMotorized(xml)
+  self:populateXMFromLights(xml)
+  self:populateXMLWithSupportSystems(xml)
+  -- TODO open stuff
+  -- object stuff (vehicle and implements
+  --- wear
+  --- TurnOnVehicle
+  --- Foldable
+  --- FillUnits
   self:populateXMLFromAttacherJoints(xml)
 end
 
@@ -239,6 +249,47 @@ function GameGlass:writeSecondaryMotorFillUnitToXML(xml, path, fillType, fillUni
   xml:setString(string.format("%s.%s#unit", path, pathType), unit)
   xml:setInt(string.format("%s.%s#capacity", path, pathType), capacity)
   xml:setString(string.format("%s.%s#fillLevelPercentage", path, pathType), ValueMapper.mapPercentage(fillLevelPercentage, 0))
+end
+
+---@param xml XMLFile
+function GameGlass:populateXMFromLights(xml)
+  local spec = self.currentVehicle.spec_lights
+  if spec == nil then
+    return
+  end
+
+  -- indicators
+  xml:setBool("GGI.vehicle.lights.indicator#left", spec.turnLightState == Lights.TURNLIGHT_LEFT or spec.turnLightState == Lights.TURNLIGHT_HAZARD)
+  xml:setBool("GGI.vehicle.lights.indicator#right", spec.turnLightState == Lights.TURNLIGHT_RIGHT or spec.turnLightState == Lights.TURNLIGHT_HAZARD)
+  xml:setBool("GGI.vehicle.lights.indicator#hazard", spec.turnLightState == Lights.TURNLIGHT_HAZARD)
+
+  -- beacon beacon light
+  xml:setBool("GGI.vehicle.lights.beaconLight", next(spec.beaconLights) ~= nil and spec.beaconLightsActive)
+
+  -- normal lights
+  xml:setBool("GGI.vehicle.lights.light#lowBeam", bitAND(spec.lightsTypesMask, 2 ^ Lights.LIGHT_TYPE_DEFAULT) ~= 0)
+  xml:setBool("GGI.vehicle.lights.light#highBeam", bitAND(spec.lightsTypesMask, 2 ^ Lights.LIGHT_TYPE_HIGHBEAM) ~= 0)
+
+  --work lights
+  xml:setBool("GGI.vehicle.lights.workLight#front", bitAND(spec.lightsTypesMask, 2 ^ Lights.LIGHT_TYPE_WORK_FRONT) ~= 0)
+  xml:setBool("GGI.vehicle.lights.workLight#back", bitAND(spec.lightsTypesMask, 2 ^ Lights.LIGHT_TYPE_WORK_BACK) ~= 0)
+end
+
+---@param xml XMLFile
+function GameGlass:populateXMLWithSupportSystems(xml)
+  local vehicle = self.currentVehicle
+  local dSpec = vehicle.spec_drivable
+
+  -- gps
+  xml:setString("GGI.vehicle.gps#mode", "AI")
+  xml:setBool("GGI.vehicle.gps#active", false)
+
+  -- cruise control
+  if dSpec ~= nil then
+    local cruiseControl = dSpec.cruiseControl
+    xml:setInt("GGI.vehicle.cruiseControl#targetSpeed", cruiseControl.speed)
+    xml:setBool("GGI.vehicle.cruiseControl#active", cruiseControl.state ~= Drivable.CRUISECONTROL_STATE_OFF)
+  end
 end
 
 ---@param xml XMLFile
