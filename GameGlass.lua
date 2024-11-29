@@ -156,10 +156,14 @@ function GameGlass:populateXMLFromVehicle(xml)
 
   xml:setInt("GGI.vehicle.speed", vehicle:getLastSpeed())
   xml:setString("GGI.vehicle#name", vehicle:getFullName())
-  xml:setString("GGI.vehicle.speed#unit", "km/h")
-  xml:setString("GGI.vehicle.speed#direction", ValueMapper.mapDirection(vehicle:getDrivingDirection()))
-  xml:setString("GGI.vehicle.operatingTime", ValueMapper.formatOperatingTime(vehicle.operatingTime))
-  xml:setString("GGI.vehicle.operatingTime#unit", "h")
+  if vehicle.getDrivingDirection ~= nil then
+    xml:setString("GGI.vehicle.speed#unit", "km/h")
+    xml:setString("GGI.vehicle.speed#direction", ValueMapper.mapDirection(vehicle:getDrivingDirection()))
+  end
+  if vehicle.operatingTime ~= nil then
+    xml:setString("GGI.vehicle.operatingTime", ValueMapper.formatOperatingTime(vehicle.operatingTime))
+    xml:setString("GGI.vehicle.operatingTime#unit", "h")
+  end
   self:populateXMLFromMotorized(xml)
   self:populateXMFromLights(xml)
   self:populateXMLWithSupportSystems(xml)
@@ -170,7 +174,10 @@ function GameGlass:populateXMLFromVehicle(xml)
   -- TODO open stuff
   -- object stuff (vehicle and implements
   --- wear
-  --- lowered
+  --- pipe
+  --- cover
+  --- vehicle type
+  --- combined stuff for fillUnits and state of front / back implements
   self:populateXMLFromAttacherJoints(xml, "GGI.vehicle", self.currentVehicle)
 end
 
