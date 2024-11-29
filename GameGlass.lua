@@ -417,7 +417,6 @@ function GameGlass:populateXMLFromFillUnit(xml, path, object)
         name = ""
         title = ""
       end
-      self.debugger:trace("fillUnitIndex: %s", fillUnitIndex)
 
       xml:setInt(string.format("%s.fillUnit", basePath), fillLevel)
       xml:setString(string.format("%s.fillUnit#type", basePath), name)
