@@ -163,13 +163,15 @@ function GameGlass:populateXMLFromVehicle(xml)
   self:populateXMLFromMotorized(xml)
   self:populateXMFromLights(xml)
   self:populateXMLWithSupportSystems(xml)
+  self:populateXMLFromTurnOnVehicle(xml, "GGI.vehicle", self.currentVehicle)
+  self:populateXMLFromFoldable(xml, "GGI.vehicle", self.currentVehicle)
+  self:populateXMLFromLowered(xml, "GGI.vehicle", self.currentVehicle)
+  self:populateXMLFromFillUnit(xml, "GGI.vehicle", self.currentVehicle)
   -- TODO open stuff
   -- object stuff (vehicle and implements
   --- wear
-  --- TurnOnVehicle
-  --- Foldable
-  --- FillUnits
-  self:populateXMLFromAttacherJoints(xml)
+  --- lowered
+  self:populateXMLFromAttacherJoints(xml, "GGI.vehicle", self.currentVehicle)
 end
 
 ---@param xml XMLFile
@@ -296,8 +298,9 @@ function GameGlass:populateXMLWithSupportSystems(xml)
 end
 
 ---@param xml XMLFile
-function GameGlass:populateXMLFromAttacherJoints(xml)
-  local ajSpec = self.currentVehicle.spec_attacherJoints
+---@param object table
+function GameGlass:populateXMLFromAttacherJoints(xml, path, rootObject)
+  local ajSpec = rootObject.spec_attacherJoints
 
   -- check if the current vehicle has attacher joins
   if ajSpec == nil then
@@ -305,16 +308,123 @@ function GameGlass:populateXMLFromAttacherJoints(xml)
   end
 
   for index, attachedImplement in pairs(ajSpec.attachedImplements) do
-    local position = self.currentVehicle:ggiGetAttacherJointPosition(attachedImplement)
+    local position
+    if rootObject.ggiGetAttacherJointPosition ~= nil then
+      position = rootObject:ggiGetAttacherJointPosition(attachedImplement)
+    else
+      position = ""
+    end
 
     -- lua table index starts with 1, but xml index must start with 0
-    local xmlBasePath = string.format("GGI.vehicle.attacher(%d)", index - 1)
+    local xmlBasePath = string.format("%s.implement(%d)", path, index - 1)
     xml:setString(string.format("%s#position", xmlBasePath), position)
 
     ---@type Vehicle
     local object = attachedImplement.object
     if object ~= nil then
-      xml:setString(xmlBasePath, object:getFullName())
+      xml:setString(string.format("%s#name", xmlBasePath), object:getFullName())
+    end
+
+    self:populateXMLFromTurnOnVehicle(xml, xmlBasePath, object)
+    self:populateXMLFromFoldable(xml, xmlBasePath, object)
+    self:populateXMLFromLowered(xml, xmlBasePath, object)
+    self:populateXMLFromFillUnit(xml, xmlBasePath, object)
+    self:populateXMLFromAttacherJoints(xml, xmlBasePath, object)
+  end
+end
+
+---@param xml XMLFile
+---@param path string
+---@param object table
+function GameGlass:populateXMLFromTurnOnVehicle(xml, path, object)
+  local spec = object.spec_turnOnVehicle
+  if spec == nil then
+    return
+  end
+
+  local isOn = object:getIsTurnedOn()
+  xml:setBool(string.format("%s.isTurnedOn", path), isOn)
+end
+
+---@param xml XMLFile
+---@param path string
+---@param object table
+function GameGlass:populateXMLFromFoldable(xml, path, object)
+  local spec = object.spec_foldable
+  if spec == nil or #spec.foldingParts <= 0 then
+    return
+  end
+  local isOnlyLowering = spec.foldMiddleAnimTime ~= nil and spec.foldMiddleAnimTime == 1
+  if isOnlyLowering then
+    return
+  end
+
+  local direction = object:getToggledFoldDirection()
+  local text = nil
+
+  if direction == spec.turnOnFoldDirection then
+    text = "FOLDED"
+  else
+    text = "EXTENDED"
+  end
+  xml:setString(string.format("%s.foldable", path), text)
+end
+
+---@param xml XMLFile
+---@param path string
+---@param object table
+function GameGlass:populateXMLFromLowered(xml, path, object)
+  if object.getIsLowered == nil or object:getIsLowered() == nil then
+    return
+  end
+
+  local state = object:getIsLowered()
+
+  xml:setBool(string.format("%s.lowered", path), state)
+end
+
+---@param xml XMLFile
+---@param path string
+---@param object table
+function GameGlass:populateXMLFromFillUnit(xml, path, object)
+  local spec = object.spec_fillUnit
+  if spec == nil or #spec.fillUnits <= 0 then
+    return
+  end
+  local mSpec = object.spec_motorized
+  ---@type Set
+  local propellantFillUnitIndices
+  if mSpec ~= nil then
+    propellantFillUnitIndices = Set:new(mSpec.propellantFillUnitIndices)
+  else
+    propellantFillUnitIndices = Set:new()
+  end
+
+  local index = 0
+  for fillUnitIndex, fillUnit in ipairs(spec.fillUnits) do
+    local fillTypeIndex = fillUnit.fillType
+    local fillType = g_fillTypeManager:getFillTypeByIndex(fillTypeIndex)
+    if not (propellantFillUnitIndices:contains(fillUnitIndex) or fillType.name == "AIR") then
+      basePath = string.format("%s.fillUnits(%d)", path, index)
+      local capacity = fillUnit.capacity
+      local fillLevel = fillUnit.fillLevel
+      local fillLevelPercentage = fillLevel / capacity
+      local unit = fillType.unitShort
+      local name = fillType.name
+      local title = fillType.title
+      if fillTypeIndex == 1 then
+        unit = ""
+        name = ""
+        title = ""
+      end
+      self.debugger:trace("fillUnitIndex: %s", fillUnitIndex)
+
+      xml:setInt(string.format("%s.fillUnit", basePath), fillLevel)
+      xml:setString(string.format("%s.fillUnit#type", basePath), name)
+      xml:setString(string.format("%s.fillUnit#title", basePath), title)
+      xml:setString(string.format("%s.fillUnit#unit", basePath), unit)
+      xml:setInt(string.format("%s.fillUnit#capacity", basePath), capacity)
+      xml:setString(string.format("%s.fillUnit#fillLevelPercentage", basePath), ValueMapper.mapPercentage(fillLevelPercentage, 0))
     end
   end
 end

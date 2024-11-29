@@ -1,4 +1,5 @@
 -- Define the Set class
+---@class Set
 Set = {}
 Set.__index = Set
 
