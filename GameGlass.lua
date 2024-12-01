@@ -12,11 +12,22 @@ local modName = g_currentModName
 source(Utils.getFilename("Set.lua", modDirectory .. "util/"))
 source(Utils.getFilename("ValueMapper.lua", modDirectory))
 
+---@class CombinedInfo
+---@field fillUnits table<string, CombinedFillUnit> @key is type
+
+---@class CombinedFillUnit
+---@field type string
+---@field title string
+---@field unit string
+---@field capacity number
+---@field fillLevel number
+
 ---@class GameGlass
 ---@field debugger GrisuDebug
 ---@field exportEnabled boolean
 ---@field updateTimer number
 ---@field settingsXmlFile string
+---@field combinedInfo CombinedInfo
 GameGlass = {}
 GameGlass.STATE_FILE_NAME = "gameGlassInterface.xml"
 GameGlass.XML_VERSION = 1
@@ -40,6 +51,9 @@ function GameGlass.init()
   self.exportEnabled = false
   self.specLogLevel = GrisuDebug.INFO
   self.updateTimer = 0
+  self.combinedInfo = {
+    fillUnits = {}
+  }
 
   local modSettingsDir = getUserProfileAppPath() .. "modSettings/"
   self.settingsXmlFile = modSettingsDir .. GameGlass.SETTINGS_XML
@@ -123,6 +137,10 @@ end
 
 function GameGlass:writeXMLFile()
   self.debugger:trace("Write xml file")
+  -- reset combined info
+  self.combinedInfo = {
+    fillUnits = {}
+  }
 
   local xml = XMLFile.create("GameGlass", self.xmlFileLocation, "GGI")
   xml:setInt("GGI#version", GameGlass.XML_VERSION)
@@ -179,6 +197,8 @@ function GameGlass:populateXMLFromVehicle(xml)
   --- vehicle type
   --- combined stuff for fillUnits and state of front / back implements
   self:populateXMLFromAttacherJoints(xml, "GGI.vehicle", self.currentVehicle)
+
+  self:populateXMLFromCombinedInfo(xml)
 end
 
 ---@param xml XMLFile
@@ -392,6 +412,18 @@ end
 
 ---@param xml XMLFile
 ---@param path string
+---@param fillUnit CombinedFillUnit
+function GameGlass:writeFillUnit(xml, path, fillUnit)
+  xml:setInt(string.format("%s", path), fillUnit.fillLevel)
+  xml:setString(string.format("%s#type", path), fillUnit.type)
+  xml:setString(string.format("%s#title", path), fillUnit.title)
+  xml:setString(string.format("%s#unit", path), fillUnit.unit)
+  xml:setInt(string.format("%s#capacity", path), fillUnit.capacity)
+  xml:setString(string.format("%s#fillLevelPercentage", path), ValueMapper.mapPercentage(fillUnit.fillLevel / fillUnit.capacity, 0))
+end
+
+---@param xml XMLFile
+---@param path string
 ---@param object table
 function GameGlass:populateXMLFromFillUnit(xml, path, object)
   local spec = object.spec_fillUnit
@@ -412,10 +444,9 @@ function GameGlass:populateXMLFromFillUnit(xml, path, object)
     local fillTypeIndex = fillUnit.fillType
     local fillType = g_fillTypeManager:getFillTypeByIndex(fillTypeIndex)
     if not (propellantFillUnitIndices:contains(fillUnitIndex) or fillType.name == "AIR") then
-      basePath = string.format("%s.fillUnits(%d)", path, index)
+      basePath = string.format("%s.fillUnits.fillUnit(%d)", path, index)
       local capacity = fillUnit.capacity
       local fillLevel = fillUnit.fillLevel
-      local fillLevelPercentage = fillLevel / capacity
       local unit = fillType.unitShort
       local name = fillType.name
       local title = fillType.title
@@ -425,13 +456,38 @@ function GameGlass:populateXMLFromFillUnit(xml, path, object)
         title = ""
       end
 
-      xml:setInt(string.format("%s.fillUnit", basePath), fillLevel)
-      xml:setString(string.format("%s.fillUnit#type", basePath), name)
-      xml:setString(string.format("%s.fillUnit#title", basePath), title)
-      xml:setString(string.format("%s.fillUnit#unit", basePath), unit)
-      xml:setInt(string.format("%s.fillUnit#capacity", basePath), capacity)
-      xml:setString(string.format("%s.fillUnit#fillLevelPercentage", basePath), ValueMapper.mapPercentage(fillLevelPercentage, 0))
+      -- write to xml
+      self:writeFillUnit(xml, basePath, { type = name, title = title, unit = unit, capacity = capacity, fillLevel = fillLevel })
+
+      -- append to combined info
+      local existing = self.combinedInfo.fillUnits[name]
+      if existing == nil then
+        existing = {
+          type = name,
+          title = title,
+          unit = unit,
+          capacity = 0,
+          fillLevel = 0
+        }
+      end
+      existing.capacity = existing.capacity + capacity
+      existing.fillLevel = existing.fillLevel + fillLevel
+      self.combinedInfo.fillUnits[name] = existing
+
+      index = index + 1
     end
+  end
+end
+
+---@param xml XMLFile
+function GameGlass:populateXMLFromCombinedInfo(xml)
+  local path = "GGI.vehicle.combined"
+
+  local index = 0
+  for _, fillUnit in pairs(self.combinedInfo.fillUnits) do
+    self:writeFillUnit(xml, string.format("%s.fillUnits.fillUnit(%d)", path, index), fillUnit)
+
+    index = index + 1
   end
 end
 
