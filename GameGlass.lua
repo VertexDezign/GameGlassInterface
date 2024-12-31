@@ -419,7 +419,12 @@ function GameGlass:writeFillUnit(xml, path, fillUnit)
   xml:setString(string.format("%s#title", path), fillUnit.title)
   xml:setString(string.format("%s#unit", path), fillUnit.unit)
   xml:setInt(string.format("%s#capacity", path), fillUnit.capacity)
-  xml:setString(string.format("%s#fillLevelPercentage", path), ValueMapper.mapPercentage(fillUnit.fillLevel / fillUnit.capacity, 0))
+  local fillPercentage = 0
+  -- some mods have a capacity of zero, we cannot divide by zero
+  if fillUnit.capacity > 0 then
+    fillPercentage = fillUnit.fillLevel / fillUnit.capacity
+  end
+  xml:setString(string.format("%s#fillLevelPercentage", path), ValueMapper.mapPercentage(fillPercentage, 0))
 end
 
 ---@param xml XMLFile
