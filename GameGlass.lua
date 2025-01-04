@@ -174,6 +174,7 @@ function GameGlass:populateXMLFromVehicle(xml)
 
   xml:setInt("GGI.vehicle.speed", vehicle:getLastSpeed())
   xml:setString("GGI.vehicle#name", vehicle:getFullName())
+  xml:setString("GGI.vehicle#type", vehicle.typeName)
   if vehicle.getDrivingDirection ~= nil then
     xml:setString("GGI.vehicle.speed#unit", "km/h")
     xml:setString("GGI.vehicle.speed#direction", ValueMapper.mapDirection(vehicle:getDrivingDirection()))
@@ -350,6 +351,7 @@ function GameGlass:populateXMLFromAttacherJoints(xml, path, rootObject)
     local object = attachedImplement.object
     if object ~= nil then
       xml:setString(string.format("%s#name", xmlBasePath), object:getFullName())
+      xml:setString(string.format("%s#type", xmlBasePath), object.typeName)
     end
 
     self:populateXMLFromTurnOnVehicle(xml, xmlBasePath, object)
