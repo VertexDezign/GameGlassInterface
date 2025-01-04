@@ -77,3 +77,16 @@ function ValueMapper.mapPeriodToMonth(currentPeriod)
     return adapted
   end
 end
+
+---@param vehicle Vehicle
+---@return number
+function ValueMapper.calculateHeading(vehicle)
+  local dx, _, dz = localDirectionToWorld(vehicle.rootNode, 0, 0, 1)
+  local yRot = MathUtil.getYRotationFromDirection(dx, dz)
+  if yRot < 0 then
+    yRot = yRot + math.pi * 2
+  end
+
+  return 360 - math.deg(yRot)
+end
+

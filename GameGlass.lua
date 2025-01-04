@@ -329,11 +329,20 @@ end
 function GameGlass:populateXMLWithSupportSystems(xml)
   local vehicle = self.currentVehicle
   local dSpec = vehicle.spec_drivable
+  local aiDSpec = vehicle.spec_aiDrivable
+  local aiMSpec = vehicle.spec_aiModeSelection
+  local aiSSpec = vehicle.spec_aiAutomaticSteering
 
-  -- TODO
-  -- gps
-  --xml:setString("GGI.vehicle.gps#mode", "AI")
-  --xml:setBool("GGI.vehicle.gps#active", false)
+  --gps
+  if aiMSpec ~= nil and aiSSpec ~= nil then
+    xml:setBool("GGI.vehicle.gps#enabled", vehicle:getAIModeSelection() == AIModeSelection.MODE.STEERING_ASSIST)
+    xml:setBool("GGI.vehicle.gps#active", aiSSpec.steeringEnabled)
+    xml:setInt("GGI.vehicle.gps#heading", ValueMapper.calculateHeading(vehicle))
+    xml:setString("GGI.vehicle.gps#headingUnit", "°")
+  end
+  --ai
+  xml:setBool("GGI.vehicle.ai#active", self.currentVehicle:getIsFieldWorkActive() or (aiDSpec ~= nil and aiDSpec.isRunning))
+
 
   -- cruise control
   if dSpec ~= nil then
