@@ -90,3 +90,14 @@ function ValueMapper.calculateHeading(vehicle)
   return 360 - math.deg(yRot)
 end
 
+---@param state number
+---@return string
+function ValueMapper.mapPipeState(state)
+  if state == 1 then
+    return "RETRACTED"
+  elseif state == 0 then
+    return "MOVING"
+  else
+    return "EXTENDED"
+  end
+end

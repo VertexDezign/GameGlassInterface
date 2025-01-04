@@ -190,12 +190,11 @@ function GameGlass:populateXMLFromVehicle(xml)
   self:populateXMLFromFoldable(xml, "GGI.vehicle", self.currentVehicle)
   self:populateXMLFromLowered(xml, "GGI.vehicle", self.currentVehicle)
   self:populateXMLFromFillUnit(xml, "GGI.vehicle", self.currentVehicle)
+  self:populateXMLFromPipe(xml, "GGI.vehicle", self.currentVehicle)
   -- TODO open stuff
   -- object stuff (vehicle and implements
   --- wear
-  --- pipe
   --- cover
-  --- vehicle type
   --- combined stuff for fillUnits and state of front / back implements
   self:populateXMLFromAttacherJoints(xml, "GGI.vehicle", self.currentVehicle)
 
@@ -385,6 +384,7 @@ function GameGlass:populateXMLFromAttacherJoints(xml, path, rootObject)
     self:populateXMLFromFoldable(xml, xmlBasePath, object)
     self:populateXMLFromLowered(xml, xmlBasePath, object)
     self:populateXMLFromFillUnit(xml, xmlBasePath, object)
+    self:populateXMLFromPipe(xml, xmlBasePath, object)
     self:populateXMLFromAttacherJoints(xml, xmlBasePath, object)
   end
 end
@@ -511,6 +511,20 @@ function GameGlass:populateXMLFromFillUnit(xml, path, object)
       index = index + 1
     end
   end
+end
+
+---@param xml XMLFile
+---@param path string
+---@param object table
+function GameGlass:populateXMLFromPipe(xml, path, object)
+  if object.getCurrentPipeState == nil or object:getCurrentPipeState() == nil then
+    return
+  end
+
+  local state = object:getCurrentPipeState()
+  self.debugger:info("PipeState: %s", state)
+
+  xml:setString(string.format("%s.pipe", path), ValueMapper.mapPipeState(state))
 end
 
 ---@param xml XMLFile
