@@ -191,6 +191,7 @@ function GameGlass:populateXMLFromVehicle(xml)
   self:populateXMLFromLowered(xml, "GGI.vehicle", self.currentVehicle)
   self:populateXMLFromFillUnit(xml, "GGI.vehicle", self.currentVehicle)
   self:populateXMLFromPipe(xml, "GGI.vehicle", self.currentVehicle)
+  self:populateXMLFromCover(xml, "GGI.vehicle", self.currentVehicle)
   -- TODO open stuff
   -- object stuff (vehicle and implements
   --- wear
@@ -385,6 +386,7 @@ function GameGlass:populateXMLFromAttacherJoints(xml, path, rootObject)
     self:populateXMLFromLowered(xml, xmlBasePath, object)
     self:populateXMLFromFillUnit(xml, xmlBasePath, object)
     self:populateXMLFromPipe(xml, xmlBasePath, object)
+    self:populateXMLFromCover(xml, xmlBasePath, object)
     self:populateXMLFromAttacherJoints(xml, xmlBasePath, object)
   end
 end
@@ -522,9 +524,20 @@ function GameGlass:populateXMLFromPipe(xml, path, object)
   end
 
   local state = object:getCurrentPipeState()
-  self.debugger:info("PipeState: %s", state)
 
   xml:setString(string.format("%s.pipe", path), ValueMapper.mapPipeState(state))
+end
+
+---@param xml XMLFile
+---@param path string
+---@param object table
+function GameGlass:populateXMLFromCover(xml, path, object)
+  local spec = object.spec_cover
+  if spec == nil or not spec.hasCovers then
+    return
+  end
+
+  xml:setString(string.format("%s.cover", path), ValueMapper.mapCoverState(spec.state))
 end
 
 ---@param xml XMLFile

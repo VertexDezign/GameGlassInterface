@@ -101,3 +101,15 @@ function ValueMapper.mapPipeState(state)
     return "EXTENDED"
   end
 end
+
+---@param state number
+---@return string
+function ValueMapper.mapCoverState(state)
+  if state == 1 then
+    return "OPEN"
+  elseif state == 0 then
+    return "CLOSED"
+  else
+    return "UNKNOWN"
+  end
+end
