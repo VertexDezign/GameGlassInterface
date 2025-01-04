@@ -213,16 +213,7 @@ function GameGlassSpec:ggiActionEvent(actionName, callback, forceState)
 end
 
 function GameGlassSpec:ggiGetCenterNode()
-  if self.getAIRootNode ~= nil and type(self.getAIRootNode) == "function" then
-    local node = self:getAIRootNode()
-    if node ~= nil then
-      return node
-    end
-  end
-  if self.steeringAxleNode ~= nil and self.steeringAxleNode ~= 0 then
-    return self.steeringAxleNode
-  end
-  return self.components[1].node
+  return self.rootNode
 end
 
 ---@return AttacherJointPosition
