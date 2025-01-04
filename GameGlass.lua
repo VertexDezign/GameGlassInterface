@@ -14,6 +14,7 @@ source(Utils.getFilename("ValueMapper.lua", modDirectory))
 
 ---@class CombinedInfo
 ---@field fillUnits table<string, CombinedFillUnit> @key is type
+---@field wearable table<CombinedWearable>
 
 ---@class CombinedFillUnit
 ---@field type string
@@ -21,6 +22,11 @@ source(Utils.getFilename("ValueMapper.lua", modDirectory))
 ---@field unit string
 ---@field capacity number
 ---@field fillLevel number
+
+---@class CombinedWearable
+---@field damage number
+---@field wear number
+---@field dirt number
 
 ---@class GameGlass
 ---@field debugger GrisuDebug
@@ -52,7 +58,8 @@ function GameGlass.init()
   self.specLogLevel = GrisuDebug.INFO
   self.updateTimer = 0
   self.combinedInfo = {
-    fillUnits = {}
+    fillUnits = {},
+    wearable = {}
   }
 
   local modSettingsDir = getUserProfileAppPath() .. "modSettings/"
@@ -139,7 +146,8 @@ function GameGlass:writeXMLFile()
   self.debugger:trace("Write xml file")
   -- reset combined info
   self.combinedInfo = {
-    fillUnits = {}
+    fillUnits = {},
+    wearable = {}
   }
 
   local xml = XMLFile.create("GameGlass", self.xmlFileLocation, "GGI")
@@ -192,10 +200,9 @@ function GameGlass:populateXMLFromVehicle(xml)
   self:populateXMLFromFillUnit(xml, "GGI.vehicle", self.currentVehicle)
   self:populateXMLFromPipe(xml, "GGI.vehicle", self.currentVehicle)
   self:populateXMLFromCover(xml, "GGI.vehicle", self.currentVehicle)
+  self:populateXMLFromWearAndWashable(xml, "GGI.vehicle", self.currentVehicle)
   -- TODO open stuff
   -- object stuff (vehicle and implements
-  --- wear
-  --- cover
   --- combined stuff for fillUnits and state of front / back implements
   self:populateXMLFromAttacherJoints(xml, "GGI.vehicle", self.currentVehicle)
 
@@ -387,6 +394,7 @@ function GameGlass:populateXMLFromAttacherJoints(xml, path, rootObject)
     self:populateXMLFromFillUnit(xml, xmlBasePath, object)
     self:populateXMLFromPipe(xml, xmlBasePath, object)
     self:populateXMLFromCover(xml, xmlBasePath, object)
+    self:populateXMLFromWearAndWashable(xml, xmlBasePath, object)
     self:populateXMLFromAttacherJoints(xml, xmlBasePath, object)
   end
 end
@@ -541,6 +549,30 @@ function GameGlass:populateXMLFromCover(xml, path, object)
 end
 
 ---@param xml XMLFile
+---@param path string
+---@param object table
+function GameGlass:populateXMLFromWearAndWashable(xml, path, object)
+  local wearable = object.spec_wearable
+  local washable = object.spec_washable
+  if wearable ~= nil then
+    xml:setString(string.format("%s.wearable#damage", path), ValueMapper.mapPercentage(object:getDamageAmount(), 0))
+    xml:setString(string.format("%s.wearable#wear", path), ValueMapper.mapPercentage(object:getWearTotalAmount(), 0))
+  end
+  if washable ~= nil then
+    xml:setString(string.format("%s.wearable#dirt", path), ValueMapper.mapPercentage(object:getDirtAmount(), 0))
+  end
+  if washable ~= nil or wearable ~= nil then
+    xml:setString(string.format("%s.wearable#unit", path), "%")
+
+    table.insert(self.combinedInfo.wearable, {
+      damage = object:getDamageAmount(),
+      wear = object:getWearTotalAmount(),
+      dirt = object:getDirtAmount()
+    })
+  end
+end
+
+---@param xml XMLFile
 function GameGlass:populateXMLFromCombinedInfo(xml)
   local path = "GGI.vehicle.combined"
 
@@ -549,6 +581,23 @@ function GameGlass:populateXMLFromCombinedInfo(xml)
     self:writeFillUnit(xml, string.format("%s.fillUnits.fillUnit(%d)", path, index), fillUnit)
 
     index = index + 1
+  end
+
+  local numEntries = #self.combinedInfo.wearable
+  if numEntries > 0 then
+    local damageSum = 0
+    local wearSum = 0
+    local dirtSum = 0
+    for _, wearable in pairs(self.combinedInfo.wearable) do
+      damageSum = damageSum + wearable.damage
+      wearSum = wearSum + wearable.wear
+      dirtSum = dirtSum + wearable.dirt
+    end
+
+    xml:setString(string.format("%s.wearable#damage", path), ValueMapper.mapPercentage(damageSum / numEntries, 0))
+    xml:setString(string.format("%s.wearable#wear", path), ValueMapper.mapPercentage(wearSum / numEntries, 0))
+    xml:setString(string.format("%s.wearable#dirt", path), ValueMapper.mapPercentage(dirtSum / numEntries, 0))
+    xml:setString(string.format("%s.wearable#unit", path), "%")
   end
 end
 
