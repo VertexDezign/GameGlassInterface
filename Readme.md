@@ -44,3 +44,10 @@ at the same place where your mod folder is.
 </GGS>
 
 ````
+
+### Supported Mods
+
+* [EnhancedVehicle](https://github.com/ZhooL/FS25_EnhancedVehicle)
+    * Differential
+    * AWD
+    * Parking Prake

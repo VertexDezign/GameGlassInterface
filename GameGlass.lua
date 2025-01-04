@@ -240,6 +240,24 @@ function GameGlass:populateXMLFromMotorized(xml)
       self:writeSecondaryMotorFillUnitToXML(xml, "GGI.vehicle.motor.fillUnits", fillType, v.fillUnitIndex)
     end
   end
+
+  --if enhanced vehicle present, write parking brake, diff and 4wd drive
+  local vData = self.currentVehicle.vData
+  -- we access internal state here, so defensive coding to reduce fatal errors
+  if vData ~= nil then
+    if vData.is[1] ~= nil and type(vData.is[1]) == "boolean" then
+      xml:setBool("GGI.vehicle.motor.diffLock#front", vData.is[1])
+    end
+    if vData.is[2] ~= nil and type(vData.is[2]) == "boolean" then
+      xml:setBool("GGI.vehicle.motor.diffLock#back", vData.is[2])
+    end
+    if vData.is[3] ~= nil then
+      xml:setBool("GGI.vehicle.motor.awd", vData.is[3] == 1)
+    end
+    if vData.is[13] ~= nil and type(vData.is[13]) == "boolean" then
+      xml:setBool("GGI.vehicle.motor.parkingBrake", vData.is[13])
+    end
+  end
 end
 
 ---@param xml XMLFile
