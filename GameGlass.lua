@@ -192,7 +192,7 @@ function GameGlass:populateXMLFromVehicle(xml)
     xml:setString("GGI.vehicle.operatingTime#unit", "h")
   end
   self:populateXMLFromMotorized(xml)
-  self:populateXMFromLights(xml)
+  self:populateXMLFromLights(xml)
   self:populateXMLWithSupportSystems(xml)
   self:populateXMLFromTurnOnVehicle(xml, "GGI.vehicle", self.currentVehicle)
   self:populateXMLFromFoldable(xml, "GGI.vehicle", self.currentVehicle)
@@ -309,7 +309,7 @@ function GameGlass:writeSecondaryMotorFillUnitToXML(xml, path, fillType, fillUni
 end
 
 ---@param xml XMLFile
-function GameGlass:populateXMFromLights(xml)
+function GameGlass:populateXMLFromLights(xml)
   local spec = self.currentVehicle.spec_lights
   if spec == nil then
     return
