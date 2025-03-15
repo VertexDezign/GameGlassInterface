@@ -173,21 +173,44 @@
                                     </xs:sequence>
                                 </xs:complexType>
                             </xs:element>
+                            <xs:element name="gps" minOccurs="0">
+                                <xs:complexType>
+                                    <xs:attribute name="enabled" type="xs:boolean" use="required"/>
+                                    <xs:attribute name="active" type="xs:boolean" use="required"/>
+                                    <xs:attribute name="heading" type="xs:integer" use="required"/>
+                                    <xs:attribute name="headingUnit" type="xs:string" use="required"/>
+                                </xs:complexType>
+                            </xs:element>
+                            <xs:element name="ai" minOccurs="0">
+                                <xs:complexType>
+                                    <xs:attribute name="active" type="xs:boolean" use="required"/>
+                                </xs:complexType>
+                            </xs:element>
                             <xs:element name="cruiseControl" minOccurs="0">
                                 <xs:complexType>
                                     <xs:attribute name="targetSpeed" type="xs:integer"/>
                                     <xs:attribute name="active" type="xs:boolean"/>
                                 </xs:complexType>
                             </xs:element>
+                            <xs:element name="foldable" type="FoldableStateType" minOccurs="0"/>
+                            <xs:element name="isTurnedOn" type="xs:boolean" minOccurs="0"/>
+                            <xs:element name="lowered" type="xs:boolean" minOccurs="0"/>
+                            <xs:element name="fillUnits" type="FillUnitsType" minOccurs="0"/>
+                            <xs:element name="pipe" type="PipeStateType" minOccurs="0"/>
+                            <xs:element name="wearable" type="WearableType" minOccurs="0"/>
                             <xs:element name="implement" minOccurs="0" maxOccurs="unbounded">
                                 <xs:complexType>
-                                    <xs:simpleContent>
-                                        <xs:extension base="xs:string">
-                                            <xs:attribute name="position" type="xs:string" use="required"/>
-                                            <xs:attribute name="name" type="xs:string" use="required"/>
-                                            <xs:attribute name="type" type="xs:string" use="required"/>
-                                        </xs:extension>
-                                    </xs:simpleContent>
+                                    <xs:sequence>
+                                        <xs:element name="foldable" type="FoldableStateType" minOccurs="0"/>
+                                        <xs:element name="isTurnedOn" type="xs:boolean" minOccurs="0"/>
+                                        <xs:element name="lowered" type="xs:boolean" minOccurs="0"/>
+                                        <xs:element name="fillUnits" type="FillUnitsType" minOccurs="0"/>
+                                        <xs:element name="pipe" type="PipeStateType" minOccurs="0"/>
+                                        <xs:element name="wearable" type="WearableType" minOccurs="0"/>
+                                    </xs:sequence>
+                                    <xs:attribute name="position" type="xs:string" use="required"/>
+                                    <xs:attribute name="name" type="xs:string" use="required"/>
+                                    <xs:attribute name="type" type="xs:string" use="required"/>
                                 </xs:complexType>
                             </xs:element>
                         </xs:sequence>
@@ -215,4 +238,49 @@
             <xs:enumeration value="ON"/>
         </xs:restriction>
     </xs:simpleType>
+
+    <!-- Define the enumeration type for foldable states -->
+    <xs:simpleType name="FoldableStateType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="FOLDED"/>
+            <xs:enumeration value="EXTENDED"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Define the enumeration type for pipe states -->
+    <xs:simpleType name="PipeStateType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="RETRACTED"/>
+            <xs:enumeration value="EXTENDED"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Define the type for wearable elements -->
+    <xs:complexType name="WearableType">
+        <xs:attribute name="damage" type="xs:integer" use="required"/>
+        <xs:attribute name="wear" type="xs:integer" use="required"/>
+        <xs:attribute name="dirt" type="xs:integer" use="required"/>
+        <xs:attribute name="unit" type="xs:string" use="required"/>
+    </xs:complexType>
+
+    <!-- Define the type for fillUnit elements -->
+    <xs:complexType name="FillUnitType">
+        <xs:simpleContent>
+            <xs:extension base="xs:integer">
+                <xs:attribute name="type" type="xs:string" use="required"/>
+                <xs:attribute name="title" type="xs:string" use="required"/>
+                <xs:attribute name="unit" type="xs:string" use="required"/>
+                <xs:attribute name="capacity" type="xs:integer" use="required"/>
+                <xs:attribute name="fillLevelPercentage" type="xs:integer" use="required"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
+    <!-- Define the type for fillUnits container -->
+    <xs:complexType name="FillUnitsType">
+        <xs:sequence>
+            <xs:element name="fillUnit" type="FillUnitType" minOccurs="1" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
 </xs:schema>
