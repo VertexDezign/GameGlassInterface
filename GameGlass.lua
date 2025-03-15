@@ -14,7 +14,9 @@ source(Utils.getFilename("ValueMapper.lua", modDirectory))
 
 ---@class CombinedInfo
 ---@field fillUnits table<string, CombinedFillUnit> @key is type
----@field wearable table<CombinedWearable>
+---@field wearable CombinedWearable
+---@field frontState ImplementState|nil
+---@field backState ImplementState|nil
 
 ---@class CombinedFillUnit
 ---@field type string
@@ -27,6 +29,11 @@ source(Utils.getFilename("ValueMapper.lua", modDirectory))
 ---@field damage number
 ---@field wear number
 ---@field dirt number
+
+---@class ImplementState
+---@field foldable string?
+---@field lowered boolean?
+---@field isTurnedOn boolean?
 
 ---@class GameGlass
 ---@field debugger GrisuDebug
@@ -59,7 +66,9 @@ function GameGlass.init()
   self.updateTimer = 0
   self.combinedInfo = {
     fillUnits = {},
-    wearable = {}
+    wearable = {},
+    frontState = nil,
+    backState = nil
   }
 
   local modSettingsDir = getUserProfileAppPath() .. "modSettings/"
@@ -147,7 +156,9 @@ function GameGlass:writeXMLFile()
   -- reset combined info
   self.combinedInfo = {
     fillUnits = {},
-    wearable = {}
+    wearable = {},
+    frontState = nil,
+    backState = nil
   }
 
   local xml = XMLFile.create("GameGlass", self.xmlFileLocation, "GGI")
@@ -371,11 +382,21 @@ function GameGlass:populateXMLFromAttacherJoints(xml, path, rootObject)
   end
 
   for index, attachedImplement in pairs(ajSpec.attachedImplements) do
+    ---@type AttacherJointPosition
     local position
     if rootObject.ggiGetAttacherJointPosition ~= nil then
       position = rootObject:ggiGetAttacherJointPosition(attachedImplement)
     else
       position = ""
+    end
+
+    local combinedState
+    if position == "FRONT" and self.combinedInfo.frontState == nil then
+      self.combinedInfo.frontState = {}
+      combinedState = self.combinedInfo.frontState
+    elseif position == "BACK" and self.combinedInfo.backState == nil then
+      self.combinedInfo.backState = {}
+      combinedState = self.combinedInfo.backState
     end
 
     -- lua table index starts with 1, but xml index must start with 0
@@ -389,9 +410,9 @@ function GameGlass:populateXMLFromAttacherJoints(xml, path, rootObject)
       xml:setString(string.format("%s#type", xmlBasePath), object.typeName)
     end
 
-    self:populateXMLFromTurnOnVehicle(xml, xmlBasePath, object)
-    self:populateXMLFromFoldable(xml, xmlBasePath, object)
-    self:populateXMLFromLowered(xml, xmlBasePath, object)
+    self:populateXMLFromTurnOnVehicle(xml, xmlBasePath, object, combinedState)
+    self:populateXMLFromFoldable(xml, xmlBasePath, object, combinedState)
+    self:populateXMLFromLowered(xml, xmlBasePath, object, combinedState)
     self:populateXMLFromFillUnit(xml, xmlBasePath, object)
     self:populateXMLFromPipe(xml, xmlBasePath, object)
     self:populateXMLFromCover(xml, xmlBasePath, object)
@@ -403,7 +424,8 @@ end
 ---@param xml XMLFile
 ---@param path string
 ---@param object table
-function GameGlass:populateXMLFromTurnOnVehicle(xml, path, object)
+---@param combinedState ImplementState|nil
+function GameGlass:populateXMLFromTurnOnVehicle(xml, path, object, combinedState)
   local spec = object.spec_turnOnVehicle
   if spec == nil then
     return
@@ -411,12 +433,16 @@ function GameGlass:populateXMLFromTurnOnVehicle(xml, path, object)
 
   local isOn = object:getIsTurnedOn()
   xml:setBool(string.format("%s.isTurnedOn", path), isOn)
+  if combinedState ~= nil then
+    combinedState.isTurnedOn = isOn
+  end
 end
 
 ---@param xml XMLFile
 ---@param path string
 ---@param object table
-function GameGlass:populateXMLFromFoldable(xml, path, object)
+---@param combinedState ImplementState|nil
+function GameGlass:populateXMLFromFoldable(xml, path, object, combinedState)
   local spec = object.spec_foldable
   if spec == nil or #spec.foldingParts <= 0 then
     return
@@ -435,12 +461,16 @@ function GameGlass:populateXMLFromFoldable(xml, path, object)
     text = "EXTENDED"
   end
   xml:setString(string.format("%s.foldable", path), text)
+  if combinedState ~= nil then
+    combinedState.foldable = text
+  end
 end
 
 ---@param xml XMLFile
 ---@param path string
 ---@param object table
-function GameGlass:populateXMLFromLowered(xml, path, object)
+---@param combinedState ImplementState?
+function GameGlass:populateXMLFromLowered(xml, path, object, combinedState)
   if object.getIsLowered == nil or object:getIsLowered() == nil then
     return
   end
@@ -448,6 +478,9 @@ function GameGlass:populateXMLFromLowered(xml, path, object)
   local state = object:getIsLowered()
 
   xml:setBool(string.format("%s.lowered", path), state)
+  if combinedState ~= nil then
+    combinedState.lowered = state
+  end
 end
 
 ---@param xml XMLFile
@@ -577,6 +610,7 @@ end
 function GameGlass:populateXMLFromCombinedInfo(xml)
   local path = "GGI.vehicle.combined"
 
+  -- fillUnits
   local index = 0
   for _, fillUnit in pairs(self.combinedInfo.fillUnits) do
     self:writeFillUnit(xml, string.format("%s.fillUnits.fillUnit(%d)", path, index), fillUnit)
@@ -584,6 +618,7 @@ function GameGlass:populateXMLFromCombinedInfo(xml)
     index = index + 1
   end
 
+  --wearable
   local numEntries = #self.combinedInfo.wearable
   if numEntries > 0 then
     local damageSum = 0
@@ -599,6 +634,25 @@ function GameGlass:populateXMLFromCombinedInfo(xml)
     xml:setString(string.format("%s.wearable#wear", path), ValueMapper.mapPercentage(wearSum / numEntries, 0))
     xml:setString(string.format("%s.wearable#dirt", path), ValueMapper.mapPercentage(dirtSum / numEntries, 0))
     xml:setString(string.format("%s.wearable#unit", path), "%")
+  end
+
+  --implements
+  if self.combinedInfo.frontState ~= nil then
+    self:populateXMLFromCombinedImplementState(xml, string.format("%s.implement.front", path), self.combinedInfo.frontState)
+  end
+  if self.combinedInfo.backState ~= nil then
+    self:populateXMLFromCombinedImplementState(xml, string.format("%s.implement.back", path), self.combinedInfo.backState)
+  end
+end
+
+---@param xml XMLFile
+---@param basePath string
+---@param implementState ImplementState
+function GameGlass:populateXMLFromCombinedImplementState(xml, basePath, implementState)
+  xml:setBool(string.format("%s.isTurnedOn", basePath), implementState.isTurnedOn or false)
+  xml:setBool(string.format("%s.lowered", basePath), implementState.lowered or false)
+  if implementState.foldable ~= nil then
+    xml:setString(string.format("%s.foldable", basePath), implementState.foldable)
   end
 end
 
