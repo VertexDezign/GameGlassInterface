@@ -198,21 +198,7 @@
                             <xs:element name="fillUnits" type="FillUnitsType" minOccurs="0"/>
                             <xs:element name="pipe" type="PipeStateType" minOccurs="0"/>
                             <xs:element name="wearable" type="WearableType" minOccurs="0"/>
-                            <xs:element name="implement" minOccurs="0" maxOccurs="unbounded">
-                                <xs:complexType>
-                                    <xs:sequence>
-                                        <xs:element name="foldable" type="FoldableStateType" minOccurs="0"/>
-                                        <xs:element name="isTurnedOn" type="xs:boolean" minOccurs="0"/>
-                                        <xs:element name="lowered" type="xs:boolean" minOccurs="0"/>
-                                        <xs:element name="fillUnits" type="FillUnitsType" minOccurs="0"/>
-                                        <xs:element name="pipe" type="PipeStateType" minOccurs="0"/>
-                                        <xs:element name="wearable" type="WearableType" minOccurs="0"/>
-                                    </xs:sequence>
-                                    <xs:attribute name="position" type="xs:string" use="required"/>
-                                    <xs:attribute name="name" type="xs:string" use="required"/>
-                                    <xs:attribute name="type" type="xs:string" use="required"/>
-                                </xs:complexType>
-                            </xs:element>
+                            <xs:element name="implement" type="ImplementType" minOccurs="0" maxOccurs="unbounded"/>
                             <xs:element name="combined">
                                 <xs:complexType>
                                     <xs:sequence>
@@ -308,6 +294,22 @@
             <xs:element name="isTurnedOn" type="xs:boolean" minOccurs="0"/>
             <xs:element name="lowered" type="xs:boolean" minOccurs="0"/>
         </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="ImplementType">
+        <xs:sequence>
+            <xs:element name="foldable" type="FoldableStateType" minOccurs="0"/>
+            <xs:element name="isTurnedOn" type="xs:boolean" minOccurs="0"/>
+            <xs:element name="lowered" type="xs:boolean" minOccurs="0"/>
+            <xs:element name="fillUnits" type="FillUnitsType" minOccurs="0"/>
+            <xs:element name="pipe" type="PipeStateType" minOccurs="0"/>
+            <xs:element name="wearable" type="WearableType" minOccurs="0"/>
+            <!-- Self-reference - implements can contain other implements -->
+            <xs:element name="implement" type="ImplementType" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attribute name="position" type="xs:string" use="required"/>
+        <xs:attribute name="name" type="xs:string" use="required"/>
+        <xs:attribute name="type" type="xs:string" use="required"/>
     </xs:complexType>
 
 
