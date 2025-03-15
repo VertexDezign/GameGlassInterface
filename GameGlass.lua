@@ -212,9 +212,6 @@ function GameGlass:populateXMLFromVehicle(xml)
   self:populateXMLFromPipe(xml, "GGI.vehicle", self.currentVehicle)
   self:populateXMLFromCover(xml, "GGI.vehicle", self.currentVehicle)
   self:populateXMLFromWearAndWashable(xml, "GGI.vehicle", self.currentVehicle)
-  -- TODO open stuff
-  -- object stuff (vehicle and implements
-  --- combined stuff for fillUnits and state of front / back implements
   self:populateXMLFromAttacherJoints(xml, "GGI.vehicle", self.currentVehicle)
 
   self:populateXMLFromCombinedInfo(xml)
