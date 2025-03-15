@@ -650,10 +650,10 @@ end
 ---@param implementState ImplementState
 function GameGlass:populateXMLFromCombinedImplementState(xml, basePath, implementState)
   xml:setBool(string.format("%s.isTurnedOn", basePath), implementState.isTurnedOn or false)
-  xml:setBool(string.format("%s.lowered", basePath), implementState.lowered or false)
   if implementState.foldable ~= nil then
     xml:setString(string.format("%s.foldable", basePath), implementState.foldable)
   end
+  xml:setBool(string.format("%s.lowered", basePath), implementState.lowered or false)
 end
 
 ---@param vehicle GameGlassSpec

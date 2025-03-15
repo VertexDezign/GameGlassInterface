@@ -213,6 +213,24 @@
                                     <xs:attribute name="type" type="xs:string" use="required"/>
                                 </xs:complexType>
                             </xs:element>
+                            <xs:element name="combined">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="fillUnits" type="FillUnitsType" minOccurs="0"/>
+                                        <xs:element name="wearable" type="WearableType"/>
+                                        <xs:element name="implement">
+                                            <xs:complexType>
+                                                <xs:sequence>
+                                                    <xs:element name="front" type="CombinedImplementState"
+                                                                minOccurs="0"/>
+                                                    <xs:element name="back" type="CombinedImplementState"
+                                                                minOccurs="0"/>
+                                                </xs:sequence>
+                                            </xs:complexType>
+                                        </xs:element>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
                         </xs:sequence>
                         <xs:attribute name="name" type="xs:string" use="required"/>
                         <xs:attribute name="type" type="xs:string" use="required"/>
@@ -282,5 +300,15 @@
             <xs:element name="fillUnit" type="FillUnitType" minOccurs="1" maxOccurs="unbounded"/>
         </xs:sequence>
     </xs:complexType>
+
+    <!-- Define the type for implement front section -->
+    <xs:complexType name="CombinedImplementState">
+        <xs:sequence>
+            <xs:element name="foldable" type="FoldableStateType" minOccurs="0"/>
+            <xs:element name="isTurnedOn" type="xs:boolean" minOccurs="0"/>
+            <xs:element name="lowered" type="xs:boolean" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+
 
 </xs:schema>
