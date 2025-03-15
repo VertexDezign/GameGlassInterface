@@ -197,7 +197,7 @@
                             <xs:element name="lowered" type="xs:boolean" minOccurs="0"/>
                             <xs:element name="fillUnits" type="FillUnitsType" minOccurs="0"/>
                             <xs:element name="pipe" type="PipeStateType" minOccurs="0"/>
-                            <xs:element name="cover" type="xs:boolean" minOccurs="0"/>
+                            <xs:element name="cover" type="CoverType" minOccurs="0"/>
                             <xs:element name="wearable" type="WearableType" minOccurs="0"/>
                             <xs:element name="implement" type="ImplementType" minOccurs="0" maxOccurs="unbounded"/>
                             <xs:element name="combined">
@@ -257,6 +257,15 @@
         <xs:restriction base="xs:string">
             <xs:enumeration value="RETRACTED"/>
             <xs:enumeration value="EXTENDED"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Define the enumeration type for pipe states -->
+    <xs:simpleType name="CoverType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="CLOSED"/>
+            <xs:enumeration value="OPEN"/>
+            <xs:enumeration value="UNKNOWN"/>
         </xs:restriction>
     </xs:simpleType>
 
