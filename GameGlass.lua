@@ -348,8 +348,9 @@ function GameGlass:populateXMLWithSupportSystems(xml)
     xml:setString("GGI.vehicle.gps#headingUnit", "°")
   end
   --ai
-  xml:setBool("GGI.vehicle.ai#active", self.currentVehicle:getIsFieldWorkActive() or (aiDSpec ~= nil and aiDSpec.isRunning))
-
+  if self.currentVehicle.getIsFieldWorkActive ~= nil then
+    xml:setBool("GGI.vehicle.ai#active", self.currentVehicle:getIsFieldWorkActive() or (aiDSpec ~= nil and aiDSpec.isRunning))
+  end
 
   -- cruise control
   if dSpec ~= nil then
