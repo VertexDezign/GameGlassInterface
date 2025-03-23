@@ -46,6 +46,10 @@ GameGlass.STATE_FILE_NAME = "gameGlassInterface.xml"
 GameGlass.XML_VERSION = 1
 GameGlass.SETTINGS_XML = "gameGlassInterfaceSettings.xml"
 GameGlass.SETTINGS_XML_VERSION = 1
+GameGlass.VD_AI = {
+  REQUIRED_MAJOR_VERSION = 1,
+  REQUIRED_MIN_MINOR_VERSION = 0
+}
 
 GameGlass.mainFuelTypes = Set:new({ "DIESEL", "ELECTRICCHARGE", "METHANE" })
 
@@ -85,6 +89,20 @@ end
 
 function GameGlass:loadMap(filename)
   self.debugger:debug("GameGlass loading")
+  -- check if FS25_additionalInputs is present in correct version
+  -- TODO display warning in ui
+  if FS25_additionalInputs == nil or FS25_additionalInputs.g_additionalInputs == nil then
+    self.debugger:error("FS25_additionalInputs is required but not present")
+    self.exportEnabled = false
+  else
+    if GameGlass.VD_AI.REQUIRED_MAJOR_VERSION ~= FS25_additionalInputs.AdditionalInputs.MAJOR_VERSION then
+      self.debugger:error(string.format("FS25_additionalInputs with major version %s is required, but was %s", GameGlass.VD_AI.REQUIRED_MAJOR_VERSION, FS25_additionalInputs.AdditionalInputs.MAJOR_VERSION))
+      self.exportEnabled = false
+    elseif GameGlass.VD_AI.REQUIRED_MIN_MINOR_VERSION < FS25_additionalInputs.AdditionalInputs.MINOR_VERSION then
+      self.debugger:error(string.format("FS25_additionalInputs with minimum minor version %s is required, but was %s", GameGlass.VD_AI.REQUIRED_MIN_MINOR_VERSION, FS25_additionalInputs.AdditionalInputs.MINOR_VERSION))
+      self.exportEnabled = false
+    end
+  end
 
   if g_dedicatedServerInfo == nil then
     local appPath = getUserProfileAppPath()
@@ -662,39 +680,11 @@ function GameGlass:clearCurrentVehicle()
   self.currentVehicle = nil
 end
 
-function GameGlass:installSpec(typeManager)
-  -- register spec
-  g_specializationManager:addSpecialization("gameGlassSpec", "GameGlassSpec", Utils.getFilename("GameGlassSpec.lua", modDirectory), nil)
-
-  -- add spec to vehicle types
-  local totalCount = 0
-  local modified = 0
-  for typeName, typeEntry in pairs(typeManager:getTypes()) do
-    totalCount = totalCount + 1
-    if SpecializationUtil.hasSpecialization(Enterable, typeEntry.specializations) and
-        not SpecializationUtil.hasSpecialization(Rideable, typeEntry.specializations) and
-        not SpecializationUtil.hasSpecialization(ParkVehicle, typeEntry.specializations) then
-      typeManager:addSpecialization(typeName, modName .. ".gameGlassSpec")
-      modified = modified + 1
-      self.debugger:trace("Adding GameGlass spec to " .. typeName)
-    else
-      self.debugger:trace("Not adding GameGlass spec to " .. typeName)
-    end
-  end
-
-  self.debugger:info(string.format("Inserted GameGlass spec into %i of %i vehicle types", modified, totalCount))
-end
-
-local function installSpec(typeManager)
-  if typeManager.typeName == "vehicle" then
-    g_gameGlass:installSpec(typeManager)
-  end
-end
-
 local function init()
   g_gameGlass = GameGlass.init()
-  -- install spec
-  TypeManager.validateTypes = Utils.prependedFunction(TypeManager.validateTypes, installSpec)
+
+  -- make gameGlass globally available
+  getmetatable(_G).__index.g_gameGlass = g_gameGlass
 
   -- add event listener
   addModEventListener(g_gameGlass)
