@@ -8,16 +8,9 @@ accessing more stuff with direct key bindings
 
 Link to Discord Post: [GameGlass Discord](https://discord.com/channels/522506741213167617/1308554695958204588)
 
-## Action Events
+## Requirements
 
-| Name              | Key              | Description                                                   |
-|-------------------|------------------|---------------------------------------------------------------|
-| GG_LOWER_FRONT    | KEY_lshift KEY_v | Toggle lower state of all implements attached at the front    |
-| GG_LOWER_BACK     | KEY_lalt KEY_v   | Toggle lower state of all implements attached at the back     |
-| GG_FOLD_FRONT     | KEY_lshift KEY_x | Toggle folding state off all implements attached at the front | 
-| GG_FOLD_BACK      | KEY_lalt KEY_x   | Toggle folding state off all implements attached at the back  |
-| GG_ACTIVATE_FRONT | KEY_lshift KEY_b | Toggle activation state all implements attached at the front  |
-| GG_ACTIVATE_BACK  | KEY_lalt KEY_b   | Toggle activation state all implements attached at the back   |
+* [FS25_additionalInputs](https://github.com/VertexDezign/AdditionalInputs)
 
 ## XML
 

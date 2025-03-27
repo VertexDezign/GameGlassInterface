@@ -91,15 +91,15 @@ function GameGlass:loadMap(filename)
   self.debugger:debug("GameGlass loading")
   -- check if FS25_additionalInputs is present in correct version
   -- TODO display warning in ui
-  if FS25_additionalInputs == nil or FS25_additionalInputs.g_additionalInputs == nil then
+  if FS25_additionalInputs == nil or g_vdAdditionalInputs == nil then
     self.debugger:error("FS25_additionalInputs is required but not present")
     self.exportEnabled = false
   else
-    if GameGlass.VD_AI.REQUIRED_MAJOR_VERSION ~= FS25_additionalInputs.AdditionalInputs.MAJOR_VERSION then
-      self.debugger:error(string.format("FS25_additionalInputs with major version %s is required, but was %s", GameGlass.VD_AI.REQUIRED_MAJOR_VERSION, FS25_additionalInputs.AdditionalInputs.MAJOR_VERSION))
+    if GameGlass.VD_AI.REQUIRED_MAJOR_VERSION ~= g_vdAdditionalInputs.MAJOR_VERSION then
+      self.debugger:error(string.format("FS25_additionalInputs with major version %s is required, but was %s", GameGlass.VD_AI.REQUIRED_MAJOR_VERSION, g_vdAdditionalInputs.MAJOR_VERSION))
       self.exportEnabled = false
-    elseif GameGlass.VD_AI.REQUIRED_MIN_MINOR_VERSION < FS25_additionalInputs.AdditionalInputs.MINOR_VERSION then
-      self.debugger:error(string.format("FS25_additionalInputs with minimum minor version %s is required, but was %s", GameGlass.VD_AI.REQUIRED_MIN_MINOR_VERSION, FS25_additionalInputs.AdditionalInputs.MINOR_VERSION))
+    elseif GameGlass.VD_AI.REQUIRED_MIN_MINOR_VERSION < g_vdAdditionalInputs.MINOR_VERSION then
+      self.debugger:error(string.format("FS25_additionalInputs with minimum minor version %s is required, but was %s", GameGlass.VD_AI.REQUIRED_MIN_MINOR_VERSION, g_vdAdditionalInputs.MINOR_VERSION))
       self.exportEnabled = false
     end
   end
