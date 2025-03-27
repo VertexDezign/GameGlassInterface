@@ -399,8 +399,8 @@ function GameGlass:populateXMLFromAttacherJoints(xml, path, rootObject)
   for index, attachedImplement in pairs(ajSpec.attachedImplements) do
     ---@type AttacherJointPosition
     local position
-    if rootObject.ggiGetAttacherJointPosition ~= nil then
-      position = rootObject:ggiGetAttacherJointPosition(attachedImplement)
+    if rootObject.vdAIGetAttacherJointPosition ~= nil then
+      position = rootObject:vdAIGetAttacherJointPosition(attachedImplement)
     else
       position = ""
     end
