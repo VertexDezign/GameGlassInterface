@@ -590,8 +590,6 @@ fun MapPanel(
         }
       // The one transform every overlay projects through (see MapProjection).
       val projection = MapProjection(side, scale, applied, rotationFor(), anchor)
-      // Half a map up and left of the box corner, where the overview image's own top-left sits.
-      val overviewOrigin = with(density) { (side * MapOverview.ORIGIN).toDp() }
       // Let the long-lived gestures read the current transform without restarting the pointer input.
       val currentProjection by rememberUpdatedState(projection)
 
@@ -686,18 +684,29 @@ fun MapPanel(
             translationY = projection.offset.y
           },
         ) {
-          // The base map, placed across MapOverview.SPAN rather than filling the box: the PDA image is
+          // The base map, spread across MapOverview.SPAN rather than filling the box: the PDA image is
           // the terrain *plus* the border FS25 paints around it, so the terrain fills [0,1] and the
-          // scenery runs out to [-0.5, 1.5]. It deliberately overflows this Box — the graphicsLayer
-          // does not clip — so the surround also fills the flanks a non-square tile leaves beside the
-          // map, and the panel's own clipToBounds is what finally bounds it.
+          // scenery runs out to [-0.5, 1.5].
+          //
+          // Laid out at the box size and then *transformed* to that frame, because layout cannot get
+          // there: `Modifier.size` coerces into the incoming constraints, so asking a child of this
+          // Box for twice the box silently returns the box — which draws the whole image at the
+          // terrain's size, half a box up and left of where it belongs. A graphicsLayer is not
+          // measured, so it is free to overflow, which is also what lets the surround fill the flanks
+          // a non-square tile leaves beside the square map. The panel's clipToBounds finally bounds
+          // it; nothing in between clips.
           bitmap?.let {
             Image(
               it,
               contentDescription = "map",
-              modifier = Modifier
-                .size(with(density) { (side * MapOverview.SPAN).toDp() })
-                .offset(overviewOrigin, overviewOrigin),
+              modifier = Modifier.fillMaxSize().graphicsLayer {
+                // About the box corner, the origin every other transform on this map works from.
+                transformOrigin = TransformOrigin(0f, 0f)
+                scaleX = MapOverview.SPAN
+                scaleY = MapOverview.SPAN
+                translationX = size.width * MapOverview.ORIGIN
+                translationY = size.height * MapOverview.ORIGIN
+              },
               contentScale = ContentScale.FillBounds,
             )
           }
