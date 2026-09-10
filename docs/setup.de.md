@@ -96,7 +96,19 @@ Die Einstellung, die immer funktioniert und sich für ein Tablet in der Kabine l
 Anzeige & Helligkeit → Automatische Sperre → Nie* unter iOS, *Einstellungen → Display →
 Bildschirm-Timeout* unter Android. Am Ladekabel hängt es dort oben ohnehin meistens.
 
-## 4. Prüfen, ob Daten ankommen
+## 4. Den Export einschalten
+
+Die Mod wird mit **ausgeschaltetem** Export ausgeliefert, damit sie nichts kostet, solange niemand die
+Daten tatsächlich haben will. Einmal einschalten genügt, danach bleibt es so.
+
+Im Spiel: *Einstellungen → Allgemeine Einstellungen*, nach unten zu **VDTelemetry** scrollen und
+**Export aktiviert** einschalten. Das wirkt sofort — es muss nichts neu gestartet werden.
+
+Die Einstellung gehört zu deiner Spielinstallation und nicht zu einem Spielstand, du machst das also
+einmal pro PC. Im Mehrspieler heißt das: nur wer ein Dashboard will, schaltet ein; für alle anderen
+entstehen keine Kosten, denn jeder Client schreibt seine eigenen Dateien auf seinem eigenen Rechner.
+
+## 5. Prüfen, ob Daten ankommen
 
 Lade einen Spielstand und setz dich in ein Fahrzeug. Das Dashboard sollte sich innerhalb von ein bis
 zwei Sekunden füllen.
@@ -117,8 +129,9 @@ die Ursache ist.
 
 **Das Dashboard lädt, zeigt aber keine Daten**
 
-1. **Ist der Export an?** Im Spiel unter *Einstellungen → Allgemeine Einstellungen* den Eintrag
-   **VDTelemetry** suchen und prüfen, ob **Export aktiviert** eingeschaltet ist.
+1. **Ist der Export an?** Er ist anfangs aus, bei einer frischen Installation ist das also die
+   übliche Ursache — siehe Schritt 4 oben. Im Spiel unter *Einstellungen → Allgemeine Einstellungen*
+   den Eintrag **VDTelemetry** suchen und prüfen, ob **Export aktiviert** eingeschaltet ist.
 2. **Ist FS25_additionalInputs installiert und aktiviert?** Ohne diese Mod schaltet sich VDTelemetry
    stillschweigend ab — eine Meldung im Spiel gibt es dafür noch nicht. Such in der `log.txt` des
    Spiels nach: `FS25_additionalInputs is required but not present`.
@@ -148,8 +161,9 @@ Gesucht ist der Ordner, in dem `modSettings`, `mods` und `savegame1` liegen.
 
 Im Spiel unter *Einstellungen → Allgemeine Einstellungen → VDTelemetry*:
 
-- **Export aktiviert** — der Hauptschalter. Beim Ausschalten werden die exportierten Dateien
-  gelöscht, damit das Terminal erkennt, dass der Export gestoppt wurde, statt alte Daten zu zeigen.
+- **Export aktiviert** — der Hauptschalter, und aus, bis du ihn einschaltest. Beim Wiederausschalten
+  werden die exportierten Dateien gelöscht, damit das Terminal erkennt, dass der Export gestoppt
+  wurde, statt alte Daten zu zeigen.
 - **Schreibintervall** — wie oft die Fahrzeugdaten geschrieben werden. 100 ms läuft am flüssigsten;
   erhöhe den Wert, wenn seltener geschrieben werden soll. Bei 100 ms sind das rund 140 MB pro Stunde
   — wenig im Vergleich zu dem, wofür eine moderne SSD ausgelegt ist. Wenn du trotzdem lieber gar

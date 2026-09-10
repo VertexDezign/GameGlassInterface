@@ -71,7 +71,8 @@ every channel that this session will never write: uninstall one of the mods and 
 it, instead of leaving the terminal showing last session's data. The core channels read base-game data,
 so their absence normally means "no data yet" and VDTerminal drops the affected view until they
 reappear. Three things delete a core channel's file outright, and they are what to check when one never
-appears at all: **export switched off** (nothing is written, so every channel goes), the channel's own
+appears at all: **export switched off** (nothing is written, so every channel goes — and that is the
+state a fresh install is in), the channel's own
 **`enabled="false"`**, and a **performance profile below the channel's minimum** — `low` switches
 `mapLayers` off that way.
 
@@ -237,6 +238,11 @@ than a thing that works. If it doesn't, the symptom is a dashboard that connects
 
 ## Configuration
 
+**The export starts switched off.** Installing the mod costs a session nothing until someone asks for
+the data: it writes to disk every 100 ms, and a player who joined a multiplayer game with the mod in
+their folder but no terminal running should not pay for it. The setting lives with the game
+installation rather than with a savegame, so you turn it on once per installation, in-game.
+
 Export can be toggled, the write interval chosen and the performance profile picked directly in-game:
 **General Settings**. All three apply immediately and are saved back to the configuration file —
 disabling export also removes every channel file (`vdTelemetry.json` and any per-mod one) so consumers
@@ -257,8 +263,10 @@ leftover `commands.xml` on load, so stale commands never fire at session start.
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <VDTS version="3">
     <export>
-        <!-- Disable the telemetry export, useful for multiplayer where only one person has GameGlass to reduce load on the client -->
-        <enabled>true</enabled>
+        <!-- The master switch, off in a fresh file: turn it on in General Settings (or here). Worth
+             leaving off in multiplayer on every client that has no terminal of its own, since the
+             export writes on that client's machine rather than the server's -->
+        <enabled>false</enabled>
         <!-- Milliseconds between telemetry samples (clamped to a sub-frame floor). The in-game selector offers 100/250/500/1000. -->
         <intervalMs>100</intervalMs>
     </export>

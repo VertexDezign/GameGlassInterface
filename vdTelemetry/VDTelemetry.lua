@@ -9,7 +9,7 @@
 local modDirectory = g_currentModDirectory
 local modName = g_currentModName
 
----Source files to load, there are loaded in order, so if there is a dependency to another file, at it after the file it requires
+--- Source files to load, there are loaded in order, so if there is a dependency to another file, at it after the file it requires
 ---@type table<string> files to source.
 local sourceFiles = {
   -- Utils
@@ -169,21 +169,21 @@ for _, file in ipairs(sourceFiles) do
 end
 
 ---@class VDTelemetry
----@field debugger GrisuDebug
----@field exportEnabled boolean
----@field writeIntervalMs number
----@field updateTimer number
----@field settingsXmlFile string
----@field jsonFileLocation string
----@field pda PDA | nil
----@field prettyJson boolean
----@field logLevelString string
----@field specLevelString string
----@field baseDir string modSettings/<modName>/ — holds the settings XML + the telemetry/ subfolder
----@field commandFileLocation string | nil path to the command channel's commands.xml (client-side only)
----@field lastCommandId number highest command id already handled (dedup watermark)
----@field commandsPolledThisCycle boolean guards the once-per-cycle command poll (offset from the write)
----@field staleFilesCleaned boolean guards the one-shot startup cleanup of never-written channel files
+---@field debugger                GrisuDebug
+---@field exportEnabled           boolean
+---@field writeIntervalMs         number
+---@field updateTimer             number
+---@field settingsXmlFile         string
+---@field jsonFileLocation        string
+---@field pda                     PDA | nil
+---@field prettyJson              boolean
+---@field logLevelString          string
+---@field specLevelString         string
+---@field baseDir                 string       modSettings/<modName>/ — holds the settings XML + the telemetry/ subfolder
+---@field commandFileLocation     string | nil path to the command channel's commands.xml (client-side only)
+---@field lastCommandId           number       highest command id already handled (dedup watermark)
+---@field commandsPolledThisCycle boolean      guards the once-per-cycle command poll (offset from the write)
+---@field staleFilesCleaned       boolean      guards the one-shot startup cleanup of never-written channel files
 VDTelemetry = {}
 VDTelemetry.STATE_FILE_NAME = "vdTelemetry.json"
 -- Registry name of the main telemetry export channel (see src/export/ExportChannels.lua).
@@ -290,10 +290,7 @@ VDTelemetry.MIN_INTERVAL_MS = 16
 -- added. 2 is `vdAI<Action>Selected`, which ImplementControl needs to address the selected machine
 -- (issue #120). Failing the check switches the export off rather than letting half the commands
 -- silently do nothing.
-VDTelemetry.VD_AI = {
-  REQUIRED_MAJOR_VERSION = 1,
-  REQUIRED_MIN_MINOR_VERSION = 2,
-}
+VDTelemetry.VD_AI = { REQUIRED_MAJOR_VERSION = 1, REQUIRED_MIN_MINOR_VERSION = 2 }
 
 VDTelemetry.mainFuelTypes = Set:new({ "DIESEL", "ELECTRICCHARGE", "METHANE" })
 
@@ -426,9 +423,12 @@ function VDTelemetry:loadMap(filename)
   self.debugger:info("VDTelemetry loaded")
 end
 
+-- Defaults for a fresh (or schema-reset) settings file. The export is off: it writes to disk every
+-- 100 ms and only a player running VDTerminal wants that, so it is switched on in General Settings
+-- rather than the other way round.
 function VDTelemetry:writeDefaultSettings()
   self.debugger:trace("writeDefaultSettings")
-  self.exportEnabled = g_dedicatedServer == nil
+  self.exportEnabled = false
   self.writeIntervalMs = VDTelemetry.DEFAULT_INTERVAL_MS
   self.logLevelString = "INFO"
   self.specLevelString = "INFO"
@@ -493,7 +493,10 @@ function VDTelemetry:loadSettingsFromFile()
     return
   end
 
-  self.exportEnabled = xml:getBool("VDTS.export.enabled", g_dedicatedServer == nil)
+  -- Off unless the file says otherwise: the export starts disabled and the player turns it on in
+  -- General Settings (writeDefaultSettings writes the same false into a fresh file). A key missing
+  -- from an existing file means a hand-edit rather than a choice, so it takes the same default.
+  self.exportEnabled = xml:getBool("VDTS.export.enabled", false)
   self.writeIntervalMs =
     math.max(xml:getInt("VDTS.export.intervalMs", VDTelemetry.DEFAULT_INTERVAL_MS), VDTelemetry.MIN_INTERVAL_MS)
   self.logLevelString = xml:getString("VDTS.logging.level", "INFO")
@@ -529,7 +532,7 @@ function VDTelemetry:isTelemetryAvailable()
   return g_dedicatedServer == nil
 end
 
----Live-apply an export enabled/disabled change from the settings UI and persist it.
+--- Live-apply an export enabled/disabled change from the settings UI and persist it.
 ---@param enabled boolean
 function VDTelemetry:setExportEnabled(enabled)
   if self.exportEnabled == enabled then
@@ -549,7 +552,7 @@ function VDTelemetry:setExportEnabled(enabled)
   self.debugger:info("Export %s", enabled and "enabled" or "disabled")
 end
 
----Live-apply a write-interval change from the settings UI and persist it.
+--- Live-apply a write-interval change from the settings UI and persist it.
 ---@param intervalMs number
 function VDTelemetry:setWriteIntervalMs(intervalMs)
   intervalMs = math.max(intervalMs, VDTelemetry.MIN_INTERVAL_MS)
@@ -563,8 +566,8 @@ function VDTelemetry:setWriteIntervalMs(intervalMs)
   self.debugger:info("Write interval set to %d ms", intervalMs)
 end
 
----Live-apply a performance-profile change from the settings UI and persist it. The profile lives in
----ExportChannels (it resolves the per-channel cadence); this just applies + persists + refreshes.
+--- Live-apply a performance-profile change from the settings UI and persist it. The profile lives in
+--- ExportChannels (it resolves the per-channel cadence); this just applies + persists + refreshes.
 ---@param name string one of VDT.ExportChannels.PROFILES
 function VDTelemetry:setProfile(name)
   if VDT.ExportChannels.getProfile() == name then
