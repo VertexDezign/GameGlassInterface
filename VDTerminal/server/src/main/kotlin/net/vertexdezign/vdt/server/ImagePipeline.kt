@@ -6,14 +6,32 @@ import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
 
 /**
- * Decode → (center-)crop → PNG, mirroring the Go server's `handleImage`.
+ * Decode → crop the decorated surround off → PNG.
  *
  * DDS is decoded via [Dds]; PNG/JPG go through ImageIO. Non-image extensions pass through as
- * `application/octet-stream`. Cropping matches `cropImage`: only crop when the target is smaller
- * than the source, centered.
+ * `application/octet-stream`.
+ *
+ * The overview image is **not** the terrain. FS25 draws the playable ground into the middle of a
+ * decorated border — where a map's title art, legend and painted-on surroundings live — and the game
+ * itself only ever samples the middle when it puts world coordinates on the image
+ * ([TERRAIN_SCALE] / [TERRAIN_OFFSET], the `mapExtension*` constants `IngameMap:new` fixes for every
+ * map). Everything the app draws over this image (ground-layer rasters, field polygons, POI and
+ * vehicle markers) is normalized against the terrain, so the border has to go or none of it lines up.
+ *
+ * This used to be a center-crop to the PDA's declared `width`/`height`, which are the *world* size in
+ * meters (`map#width` in map.xml, "Width of the world"), not pixels. It survived on a coincidence: a
+ * stock 2048 m map ships a 4096² overview, so cropping to "2048" landed on exactly the half this now
+ * takes by proportion. A 4x map breaks it — 4096 m of world against a 4096² image leaves nothing
+ * smaller to crop to, the border stays, and every terrain-normalized overlay sits wrong over it.
  */
 object ImagePipeline {
-  fun process(data: ByteArray, filename: String, pdaWidth: Int, pdaHeight: Int): Pair<ByteArray, String> {
+  /** Fraction of each axis the terrain occupies, centered: `IngameMap.mapExtensionScaleFactor`. */
+  private const val TERRAIN_SCALE = 0.5
+
+  /** Where the terrain starts on each axis: `IngameMap.mapExtensionOffsetX` / `OffsetZ`. */
+  private const val TERRAIN_OFFSET = 0.25
+
+  fun process(data: ByteArray, filename: String): Pair<ByteArray, String> {
     val ext = filename.substringAfterLast('.', "").lowercase()
 
     val image: BufferedImage =
@@ -31,9 +49,8 @@ object ImagePipeline {
         }
       }
 
-    val result = if (pdaWidth > 0 && pdaHeight > 0) crop(image, pdaWidth, pdaHeight) else image
     val out = ByteArrayOutputStream()
-    ImageIO.write(result, "png", out)
+    ImageIO.write(cropToTerrain(image), "png", out)
     return out.toByteArray() to "image/png"
   }
 
@@ -53,29 +70,33 @@ object ImagePipeline {
     return img
   }
 
-  /** Center-crop to target size, but only if smaller than the source (port of `cropImage`). */
-  private fun crop(img: BufferedImage, targetWidth: Int, targetHeight: Int): BufferedImage {
-    val width = img.width
-    val height = img.height
-    if (targetWidth >= width && targetHeight >= height) return img
+  /**
+   * The centered [TERRAIN_SCALE] of [img] — the part of the overview that is actually the map.
+   *
+   * Purely proportional, so it holds whatever resolution the map author exported at, and it is the
+   * whole crop: an image too small to take a middle out of (under two pixels on an axis) is passed
+   * through rather than reduced to a sliver.
+   */
+  private fun cropToTerrain(img: BufferedImage): BufferedImage {
+    val width = (img.width * TERRAIN_SCALE).toInt()
+    val height = (img.height * TERRAIN_SCALE).toInt()
+    if (width < 1 || height < 1) return img
 
-    val extractWidth = minOf(targetWidth, width)
-    val extractHeight = minOf(targetHeight, height)
-    val left = (width - extractWidth) / 2
-    val top = (height - extractHeight) / 2
+    val left = (img.width * TERRAIN_OFFSET).toInt()
+    val top = (img.height * TERRAIN_OFFSET).toInt()
 
-    val dst = BufferedImage(extractWidth, extractHeight, BufferedImage.TYPE_INT_ARGB)
+    val dst = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
     val g = dst.createGraphics()
     g.drawImage(
       img,
       0,
       0,
-      extractWidth,
-      extractHeight,
+      width,
+      height,
       left,
       top,
-      left + extractWidth,
-      top + extractHeight,
+      left + width,
+      top + height,
       null,
     )
     g.dispose()

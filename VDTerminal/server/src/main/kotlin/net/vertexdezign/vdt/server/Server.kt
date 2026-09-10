@@ -519,12 +519,12 @@ fun main() {
       }
 
       get("/api/map-image") {
-        val pda =
+        val filename =
           telemetryState.value
             ?.environment
             ?.pda
-        val filename = pda?.filename
-        if (pda == null || filename.isNullOrBlank()) {
+            ?.filename
+        if (filename.isNullOrBlank()) {
           call.respondText("PDA / filename not available", status = HttpStatusCode.NotFound)
           return@get
         }
@@ -534,8 +534,7 @@ fun main() {
           return@get
         }
         try {
-          val (bytes, contentType) =
-            ImagePipeline.process(asset.bytes, filename, pda.width ?: 0, pda.height ?: 0)
+          val (bytes, contentType) = ImagePipeline.process(asset.bytes, filename)
           call.respondBytes(bytes, ContentType.parse(contentType))
         } catch (e: Exception) {
           log.error("Failed to process map image {}", filename, e)

@@ -15,25 +15,29 @@ import kotlin.test.assertTrue
  * owners, absent polygon), and a lossless JSON round-trip — the map channel's half of the
  * mod↔Kotlin contract.
  *
- * Three captures, each carrying what the others cannot. `vanilla.json` is a whole real map in
+ * Four captures, each carrying what the others cannot. `vanilla.json` is a whole real map in
  * singleplayer (77 fields, 73 POIs) and carries the mapping; `mp_modded.json` is a modded map seen
  * from a multiplayer client (85 fields, 63 POIs, four farms) and carries the per-farm palette and a
  * marker type the base game has no placeable for; `empty.json` is the loaded-but-nothing-to-show
- * file. The two absences none of them contains — a POI the game gave no name and a field whose
+ * file; and `mlk/map.json`, over in that session's own folder, is the only one whose terrain is not
+ * 2048 m. The two absences none of them contains — a POI the game gave no name and a field whose
  * outline failed to resolve — are inline JSON below, because fixtures in this project are real game
  * captures and never hand-authored.
  */
 class MapDataModelTest {
   private val json = Json { encodeDefaults = true }
 
-  private fun example(name: String): String {
+  private fun example(name: String): String = capture("map/$name")
+
+  /** A fixture anywhere under `examples/json/`, by its path from there. */
+  private fun capture(path: String): String {
     var dir: File? = File(".").absoluteFile
     while (dir != null) {
-      val candidate = File(dir, "examples/json/map/$name")
+      val candidate = File(dir, "examples/json/$path")
       if (candidate.exists()) return candidate.readText()
       dir = dir.parentFile
     }
-    error("Could not locate examples/json/map/$name from ${File(".").absolutePath}")
+    error("Could not locate examples/json/$path from ${File(".").absolutePath}")
   }
 
   private fun assertRoundTrips(data: MapData) {
@@ -329,6 +333,45 @@ class MapDataModelTest {
     assertEquals(2, data.farms.size)
     assertEquals(1, data.farms.mapNotNull { it.color }.distinct().size, "two farms, one hex — and both are real")
     assertEquals(listOf(1, 4), data.farms.map { it.id }, "the ids still tell them apart, which is why they are the key")
+    assertRoundTrips(data)
+  }
+
+  /**
+   * A **4x map** — Am Mittellandkanal, 4096 m of terrain where every other capture is 2048 m. It
+   * lives beside the rest of that session in `examples/json/mlk/` rather than in `map/`, because
+   * what it is for is the whole set together: its `overview.dds` is the map image the crop in the
+   * server's `ImagePipeline` is about, and only this `map.json` says how big the world under it is.
+   *
+   * The point is that almost nothing here changes with the map's size. Coordinates are normalized,
+   * so they stay in [0,1] however many kilometres that spans, and [MapData.terrainSize] is the only
+   * value that grows — which is exactly why anything converting back to meters has to read it and
+   * not assume the usual 2048.
+   */
+  @Test
+  fun parsesAFourTimesMap() {
+    val data = VdtParser.parseMap(capture("mlk/map.json"))
+
+    assertEquals("2", data.version)
+    assertEquals(4096f, data.terrainSize, "four times the terrain, and the only field that says so")
+    assertEquals(172, data.fields.size)
+    assertEquals(34, data.pois.size)
+    assertEquals(listOf(1), data.farms.map { it.id })
+
+    // Twice the edge, same frame: a normalized coordinate is a fraction of the map, not a distance.
+    assertTrue(
+      data.fields.all { field ->
+        field.polygon.all { it in 0f..1f } && field.labelX in 0f..1f && field.labelZ in 0f..1f
+      },
+    )
+    assertTrue(data.pois.all { it.posX in 0f..1f && it.posZ in 0f..1f })
+
+    // The thinning is in meters (MIN_POINT_SPACING_M / MAX_POLYGON_POINTS), so a bigger map buys more
+    // fields rather than more points per field — but this is the closest any capture comes to the
+    // 256-point cap, at 215 for the most jagged outline on the map.
+    assertEquals(4, data.fields.minOf { it.polygon.size / 2 })
+    assertEquals(215, data.fields.maxOf { it.polygon.size / 2 })
+    assertTrue(data.fields.all { it.id == it.farmlandId && it.name == it.id.toString() })
+
     assertRoundTrips(data)
   }
 

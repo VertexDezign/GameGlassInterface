@@ -1,0 +1,277 @@
+{
+  "version": "1",
+  "vehicles": [
+    {
+      "isAI": false,
+      "type": "tool",
+      "name": "Albutt Dunggabel",
+      "posX": 0.6663,
+      "farmId": 1,
+      "posZ": 0.40944,
+      "heading": 179
+    },
+    {
+      "isAI": false,
+      "type": "tool",
+      "name": "Albutt Silageschneidzange",
+      "posX": 0.67306,
+      "farmId": 1,
+      "posZ": 0.4055,
+      "heading": 356
+    },
+    {
+      "isAI": false,
+      "type": "other",
+      "name": "John Deere PickUp 900",
+      "posX": 0.67188,
+      "farmId": 1,
+      "posZ": 0.4055,
+      "heading": 5
+    },
+    {
+      "isAI": false,
+      "type": "trailer",
+      "name": "Brantner Z 18051/2 XXL Power Flex",
+      "posX": 0.66573,
+      "farmId": 1,
+      "posZ": 0.39498,
+      "heading": 184
+    },
+    {
+      "isAI": false,
+      "heading": 92,
+      "farmId": 1,
+      "isEntered": false,
+      "name": "Massey Ferguson MF 5709 S",
+      "posX": 0.67118,
+      "posZ": 0.41324,
+      "type": "tractor",
+      "isControlled": false
+    },
+    {
+      "isAI": false,
+      "type": "trailer",
+      "name": "Schuitemaker Rapide 580V",
+      "posX": 0.68276,
+      "farmId": 1,
+      "posZ": 0.40293,
+      "heading": 176
+    },
+    {
+      "isAI": false,
+      "type": "trailer",
+      "name": "ANNABURGER HTS 22B.79",
+      "posX": 0.65897,
+      "farmId": 1,
+      "posZ": 0.41162,
+      "heading": 131
+    },
+    {
+      "isAI": false,
+      "heading": 2,
+      "farmId": 1,
+      "isEntered": false,
+      "name": "New Holland CH7.70",
+      "posX": 0.67965,
+      "posZ": 0.41416,
+      "type": "harvester",
+      "isControlled": false
+    },
+    {
+      "isAI": false,
+      "type": "cutter",
+      "name": "New Holland SuperFlex 25FT",
+      "posX": 0.67503,
+      "farmId": 1,
+      "posZ": 0.40724,
+      "heading": 276
+    },
+    {
+      "isAI": false,
+      "type": "toolTrailed",
+      "name": "Nardi N40BX",
+      "posX": 0.67513,
+      "farmId": 1,
+      "posZ": 0.40734,
+      "heading": 186
+    },
+    {
+      "isAI": false,
+      "heading": 124,
+      "farmId": 1,
+      "isEntered": false,
+      "name": "Kärcher HDS 9/18-4 M",
+      "posX": 0.66227,
+      "posZ": 0.40986,
+      "type": "tool",
+      "isControlled": false
+    },
+    {
+      "isAI": false,
+      "type": "trailer",
+      "name": "Brantner TA 12050 Power Spread +",
+      "posX": 0.679,
+      "farmId": 1,
+      "posZ": 0.41754,
+      "heading": 270
+    },
+    {
+      "isAI": false,
+      "type": "tool",
+      "name": "AMAZONE ZA-TS 3200",
+      "posX": 0.68002,
+      "farmId": 1,
+      "posZ": 0.40924,
+      "heading": 265
+    },
+    {
+      "isAI": false,
+      "type": "toolTrailed",
+      "name": "Unia FENIX 3000/3",
+      "posX": 0.65777,
+      "farmId": 1,
+      "posZ": 0.401,
+      "heading": 163
+    },
+    {
+      "isAI": false,
+      "type": "tool",
+      "name": "LEMKEN Juwel 6 M V 4+1",
+      "posX": 0.65882,
+      "farmId": 1,
+      "posZ": 0.40052,
+      "heading": 180
+    },
+    {
+      "isAI": false,
+      "type": "tool",
+      "name": "Knoche CROSSMAX 300",
+      "posX": 0.66179,
+      "farmId": 1,
+      "posZ": 0.40057,
+      "heading": 89
+    },
+    {
+      "isAI": false,
+      "type": "tool",
+      "name": "HORSCH Kredo 3",
+      "posX": 0.66038,
+      "farmId": 1,
+      "posZ": 0.40103,
+      "heading": 181
+    },
+    {
+      "isAI": false,
+      "type": "tool",
+      "name": "Hardi MEGA 1200L",
+      "posX": 0.65747,
+      "farmId": 1,
+      "posZ": 0.40505,
+      "heading": 81
+    },
+    {
+      "isAI": false,
+      "type": "tool",
+      "name": "KUHN GMD 3123 F",
+      "posX": 0.66993,
+      "farmId": 1,
+      "posZ": 0.40997,
+      "heading": 181
+    },
+    {
+      "isAI": false,
+      "type": "tool",
+      "name": "Samasz XT 390",
+      "posX": 0.669,
+      "farmId": 1,
+      "posZ": 0.40963,
+      "heading": 3
+    },
+    {
+      "isAI": false,
+      "type": "toolTrailed",
+      "name": "Samasz Z2-840 H",
+      "posX": 0.68116,
+      "farmId": 1,
+      "posZ": 0.40763,
+      "heading": 175
+    },
+    {
+      "isAI": false,
+      "type": "tool",
+      "name": "KRONE Vendro 820 Highland",
+      "posX": 0.66792,
+      "farmId": 1,
+      "posZ": 0.40968,
+      "heading": 359
+    },
+    {
+      "isAI": false,
+      "type": "trailer",
+      "name": "Farmtech DDK 2400",
+      "posX": 0.66259,
+      "farmId": 1,
+      "posZ": 0.39316,
+      "heading": 248
+    },
+    {
+      "isAI": false,
+      "type": "toolTrailed",
+      "name": "GÖWEIL G-1 F125",
+      "posX": 0.67724,
+      "farmId": 1,
+      "posZ": 0.41335,
+      "heading": 4
+    },
+    {
+      "isAI": false,
+      "type": "tool",
+      "name": "LEMKEN Smaragd 9/500K",
+      "posX": 0.66173,
+      "farmId": 1,
+      "posZ": 0.40199,
+      "heading": 90
+    },
+    {
+      "isAI": false,
+      "heading": 96,
+      "farmId": 1,
+      "isEntered": false,
+      "name": "Aprilia RX 125",
+      "posX": 0.67287,
+      "posZ": 0.40152,
+      "type": "motorbike",
+      "isControlled": false
+    },
+    {
+      "isAI": false,
+      "heading": 267,
+      "farmId": 1,
+      "isEntered": false,
+      "name": "Case IH Puma 185 CVXDrive",
+      "posX": 0.66185,
+      "posZ": 0.39457,
+      "type": "tractor",
+      "isControlled": false
+    },
+    {
+      "isAI": false,
+      "type": "other",
+      "name": "Tenwinkel GUSSCOM 1250",
+      "posX": 0.67246,
+      "farmId": 1,
+      "posZ": 0.40557,
+      "heading": 2
+    },
+    {
+      "isAI": false,
+      "type": "train",
+      "name": "Zug",
+      "posX": 0,
+      "heading": 113,
+      "posZ": 0.21551,
+      "isEntered": false,
+      "isControlled": false
+    }
+  ]
+}
