@@ -9,10 +9,11 @@ import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 
 /**
- * The PDA overview arrives with the map painted into the middle of a decorated border, and only the
- * middle is terrain. These pin that the border is cut off proportionally — the 4x map that exposed
- * the bug ships a 4096² image for 4096 m of world, so nothing about the pixel count says where the
- * terrain starts.
+ * The PDA overview arrives with the map painted into the middle of a decorated border, and it is
+ * served whole — border included, because the app draws it (see `MapOverview`). What this pins is
+ * that nothing here takes a crop of its own: two crops lived in this file before, one keyed on the
+ * PDA's declared world size and one on the terrain proportion, and either one silently changes what
+ * the frame the app places the image in actually means.
  */
 class ImagePipelineTest {
   /** A [size]² image: border color everywhere, [terrain] in the middle half of each axis. */
@@ -37,33 +38,31 @@ class ImagePipelineTest {
   }
 
   @Test
-  fun `keeps only the terrain half of each axis`() {
+  fun `serves the overview whole, border and all`() {
     val result = process(framed(64))
 
-    assertEquals(32, result.width)
-    assertEquals(32, result.height)
-    // Every surviving pixel is terrain: a single border pixel means the crop is off.
-    for (y in 0 until result.height) {
-      for (x in 0 until result.width) {
-        assertEquals(0xFF40A060.toInt(), result.getRGB(x, y), "border leaked at ($x, $y)")
-      }
-    }
+    assertEquals(64, result.width)
+    assertEquals(64, result.height)
+    // The corner is border and the centre is terrain: both halves of the image survive, which is what
+    // lets the app place the terrain on [0,1] and let the scenery run out to [-0.5, 1.5].
+    assertEquals(0xFF102030.toInt(), result.getRGB(0, 0), "the decorated surround is part of the picture")
+    assertEquals(0xFF40A060.toInt(), result.getRGB(32, 32), "and the terrain is still in the middle of it")
+    assertEquals(0xFF102030.toInt(), result.getRGB(15, 15), "the border reaches to just inside a quarter")
+    assertEquals(0xFF40A060.toInt(), result.getRGB(16, 16), "where the terrain starts, on the quarter")
   }
 
   @Test
-  fun `crops by proportion, not by the world size the PDA declares`() {
-    // The 4x map's shape: the image is no bigger than a normal map's, the world is four times as
-    // wide. The old crop compared 4096 m against 4096 px, found nothing to take, and kept the border.
-    assertEquals(2048, process(framed(4096)).width)
+  fun `does not resize whatever resolution the map author exported`() {
+    assertEquals(4096, process(framed(4096)).width)
   }
 
   @Test
-  fun `decodes a DXT1 overview and cuts its border`() {
+  fun `decodes a DXT1 overview at its own size`() {
     val dds = javaClass.getResourceAsStream("/dds/dxt1_8x8.dds")!!.readBytes()
-    val full = ImagePipeline.process(dds, "full.dds").let { ImageIO.read(ByteArrayInputStream(it.first)) }
+    val decoded = ImagePipeline.process(dds, "full.dds").let { ImageIO.read(ByteArrayInputStream(it.first)) }
 
-    assertEquals(4, full.width)
-    assertEquals(4, full.height)
+    assertEquals(8, decoded.width)
+    assertEquals(8, decoded.height)
   }
 
   @Test
@@ -73,17 +72,5 @@ class ImagePipelineTest {
 
     assertEquals("application/octet-stream", contentType)
     assertContentEquals(raw, bytes)
-  }
-
-  @Test
-  fun `leaves an image with no middle to take alone`() {
-    val tiny = BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB)
-    val out = ByteArrayOutputStream()
-    ImageIO.write(tiny, "png", out)
-
-    val result = process(out.toByteArray())
-
-    assertEquals(1, result.width)
-    assertEquals(1, result.height)
   }
 }

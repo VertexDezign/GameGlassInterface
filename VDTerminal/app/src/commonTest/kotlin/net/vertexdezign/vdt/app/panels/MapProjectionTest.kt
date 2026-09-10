@@ -119,6 +119,28 @@ class MapProjectionTest {
     assertOffsetEquals(Offset(5f, 9f), projection.unrotateVector(Offset(5f, 9f)))
   }
 
+  /**
+   * The overview image's frame, which is the one thing on the map that is *not* on `[0,1]`. The
+   * numbers come from the game (`mapExtensionScaleFactor` 0.5, `mapExtensionOffsetX/Z` 0.25) and
+   * MapPanel places the base image with them, so getting them backwards would put the terrain under
+   * the wrong quarter of the picture with everything else still drawn correctly on top of it.
+   */
+  @Test
+  fun theOverviewImageFramesTheTerrainOnEverySide() {
+    assertEquals(2f, MapOverview.SPAN, "the image is twice the map on each axis")
+    assertEquals(-0.5f, MapOverview.ORIGIN, "so it starts half a map up and left of the terrain")
+
+    // Projected: the terrain still occupies the box edge to edge at zoom 1, and the image reaches
+    // exactly one box-width beyond it on each side.
+    val projection = MapProjection(side = 400f, scale = 1f, offset = Offset.Zero)
+    assertOffsetEquals(Offset(0f, 0f), projection.toScreen(0f, 0f))
+    assertOffsetEquals(Offset(400f, 400f), projection.toScreen(1f, 1f))
+    assertOffsetEquals(Offset(-200f, -200f), projection.toScreen(MapOverview.ORIGIN, MapOverview.ORIGIN))
+    val far = MapOverview.ORIGIN + MapOverview.SPAN
+    assertEquals(1.5f, far)
+    assertOffsetEquals(Offset(600f, 600f), projection.toScreen(far, far))
+  }
+
   @Test
   fun visibilityAllowsTheMarginButNotBeyondIt() {
     val projection = MapProjection(300f, 1f, Offset.Zero)

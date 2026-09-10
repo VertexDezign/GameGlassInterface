@@ -104,6 +104,39 @@ data class MapProjection(
 }
 
 /**
+ * Where the PDA overview image sits in [MapProjection]'s normalized frame.
+ *
+ * The image is not the terrain. FS25 paints the map's title art and surrounding scenery around the
+ * playable ground, and the ground itself is the **middle half of each axis** — `IngameMap:new` fixes
+ * `mapExtensionScaleFactor = 0.5` and `mapExtensionOffsetX/Z = 0.25` for every map, and every
+ * world→image conversion the game does (`IngameMap:drawFields`, `IngameMapElement`, Precision
+ * Farming's tramline dialog) goes through them. Normalized `[0,1]` is the terrain, so the image
+ * around it runs `[-0.5, 1.5]`.
+ *
+ * Everything else the map draws — the ground-layer rasters, field polygons, POI dots, vehicle
+ * markers — covers exactly the terrain and so stays on `[0,1]`. Only the base image is placed with
+ * these, which is the whole reason they are two numbers and not a change to the projection.
+ *
+ * Drawing the border rather than cropping it off is what keeps a panned or zoomed-out map from
+ * ending in a hard square edge: pan is unclamped, the zoom floor shrinks the terrain to a quarter of
+ * the box, and course-up swings the square about the vehicle, so the ground beyond the map is on
+ * screen often.
+ */
+object MapOverview {
+  /** Fraction of each image axis the terrain covers: `IngameMap.mapExtensionScaleFactor`. */
+  private const val SCALE = 0.5f
+
+  /** Where the terrain starts on each image axis: `IngameMap.mapExtensionOffsetX` / `OffsetZ`. */
+  private const val OFFSET = 0.25f
+
+  /** The image's edge in normalized terrain units — 2, i.e. twice the map in each direction. */
+  const val SPAN: Float = 1f / SCALE
+
+  /** The image's top-left corner in normalized terrain space — -0.5, half a map up and left. */
+  const val ORIGIN: Float = -OFFSET / SCALE
+}
+
+/**
  * The offset that keeps [focal] (a point in the *unrotated* pixel space — see
  * [MapProjection.unrotate]) pinned where it is while the zoom goes [from] → [to], starting from the
  * current [base] offset.

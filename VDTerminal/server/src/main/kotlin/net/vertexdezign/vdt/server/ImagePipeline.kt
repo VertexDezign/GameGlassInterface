@@ -6,31 +6,25 @@ import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
 
 /**
- * Decode → crop the decorated surround off → PNG.
- *
- * DDS is decoded via [Dds]; PNG/JPG go through ImageIO. Non-image extensions pass through as
+ * Decode → PNG. DDS goes through [Dds]; PNG/JPG through ImageIO; anything else passes through as
  * `application/octet-stream`.
  *
- * The overview image is **not** the terrain. FS25 draws the playable ground into the middle of a
- * decorated border — where a map's title art, legend and painted-on surroundings live — and the game
- * itself only ever samples the middle when it puts world coordinates on the image
- * ([TERRAIN_SCALE] / [TERRAIN_OFFSET], the `mapExtension*` constants `IngameMap:new` fixes for every
- * map). Everything the app draws over this image (ground-layer rasters, field polygons, POI and
- * vehicle markers) is normalized against the terrain, so the border has to go or none of it lines up.
+ * The overview is served **whole**, decorated border and all, because the border is worth drawing:
+ * FS25 paints the map's title art and surrounding scenery around the playable ground, and the game's
+ * own map screen shows all of it. What it is *not* is the terrain — the terrain is the middle half of
+ * each axis (`IngameMap:new`'s `mapExtensionScaleFactor` 0.5 and `mapExtensionOffsetX/Z` 0.25) — so
+ * the app places this image across `MapOverview.SPAN` of its normalized terrain frame rather than
+ * over `[0,1]`, and the ground-layer rasters that do cover exactly the terrain sit on top of it.
  *
- * This used to be a center-crop to the PDA's declared `width`/`height`, which are the *world* size in
- * meters (`map#width` in map.xml, "Width of the world"), not pixels. It survived on a coincidence: a
- * stock 2048 m map ships a 4096² overview, so cropping to "2048" landed on exactly the half this now
- * takes by proportion. A 4x map breaks it — 4096 m of world against a 4096² image leaves nothing
- * smaller to crop to, the border stays, and every terrain-normalized overlay sits wrong over it.
+ * This briefly cropped the border off instead, which is the same fact answered the other way: cut it
+ * out here, and a panned or zoomed-out map ends in a hard square edge against the panel background.
+ * Placing it is better than cutting it, and it keeps the decision in the one place that knows how
+ * much of the box is on screen.
+ *
+ * The crop before *that* was to the PDA's declared `width`/`height`, which are the world in meters
+ * and not pixels at all — see [net.vertexdezign.vdt.model.Pda].
  */
 object ImagePipeline {
-  /** Fraction of each axis the terrain occupies, centered: `IngameMap.mapExtensionScaleFactor`. */
-  private const val TERRAIN_SCALE = 0.5
-
-  /** Where the terrain starts on each axis: `IngameMap.mapExtensionOffsetX` / `OffsetZ`. */
-  private const val TERRAIN_OFFSET = 0.25
-
   fun process(data: ByteArray, filename: String): Pair<ByteArray, String> {
     val ext = filename.substringAfterLast('.', "").lowercase()
 
@@ -50,7 +44,7 @@ object ImagePipeline {
       }
 
     val out = ByteArrayOutputStream()
-    ImageIO.write(cropToTerrain(image), "png", out)
+    ImageIO.write(image, "png", out)
     return out.toByteArray() to "image/png"
   }
 
@@ -68,38 +62,5 @@ object ImagePipeline {
     }
     img.setRGB(0, 0, decoded.width, decoded.height, pixels, 0, decoded.width)
     return img
-  }
-
-  /**
-   * The centered [TERRAIN_SCALE] of [img] — the part of the overview that is actually the map.
-   *
-   * Purely proportional, so it holds whatever resolution the map author exported at, and it is the
-   * whole crop: an image too small to take a middle out of (under two pixels on an axis) is passed
-   * through rather than reduced to a sliver.
-   */
-  private fun cropToTerrain(img: BufferedImage): BufferedImage {
-    val width = (img.width * TERRAIN_SCALE).toInt()
-    val height = (img.height * TERRAIN_SCALE).toInt()
-    if (width < 1 || height < 1) return img
-
-    val left = (img.width * TERRAIN_OFFSET).toInt()
-    val top = (img.height * TERRAIN_OFFSET).toInt()
-
-    val dst = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
-    val g = dst.createGraphics()
-    g.drawImage(
-      img,
-      0,
-      0,
-      width,
-      height,
-      left,
-      top,
-      left + width,
-      top + height,
-      null,
-    )
-    g.dispose()
-    return dst
   }
 }

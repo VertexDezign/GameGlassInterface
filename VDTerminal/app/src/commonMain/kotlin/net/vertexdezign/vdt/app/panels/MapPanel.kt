@@ -590,6 +590,8 @@ fun MapPanel(
         }
       // The one transform every overlay projects through (see MapProjection).
       val projection = MapProjection(side, scale, applied, rotationFor(), anchor)
+      // Half a map up and left of the box corner, where the overview image's own top-left sits.
+      val overviewOrigin = with(density) { (side * MapOverview.ORIGIN).toDp() }
       // Let the long-lived gestures read the current transform without restarting the pointer input.
       val currentProjection by rememberUpdatedState(projection)
 
@@ -684,11 +686,18 @@ fun MapPanel(
             translationY = projection.offset.y
           },
         ) {
+          // The base map, placed across MapOverview.SPAN rather than filling the box: the PDA image is
+          // the terrain *plus* the border FS25 paints around it, so the terrain fills [0,1] and the
+          // scenery runs out to [-0.5, 1.5]. It deliberately overflows this Box — the graphicsLayer
+          // does not clip — so the surround also fills the flanks a non-square tile leaves beside the
+          // map, and the panel's own clipToBounds is what finally bounds it.
           bitmap?.let {
             Image(
               it,
               contentDescription = "map",
-              modifier = Modifier.fillMaxSize(),
+              modifier = Modifier
+                .size(with(density) { (side * MapOverview.SPAN).toDp() })
+                .offset(overviewOrigin, overviewOrigin),
               contentScale = ContentScale.FillBounds,
             )
           }
