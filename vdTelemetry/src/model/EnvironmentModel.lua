@@ -23,8 +23,6 @@
 
 ---@class PdaModel
 ---@field filename string?
----@field width number?
----@field height number?
 ---@field player PlayerModel
 
 ---@class EnvironmentModel

@@ -8,21 +8,6 @@ import javax.imageio.ImageIO
 /**
  * Decode → PNG. DDS goes through [Dds]; PNG/JPG through ImageIO; anything else passes through as
  * `application/octet-stream`.
- *
- * The overview is served **whole**, decorated border and all, because the border is worth drawing:
- * FS25 paints the map's title art and surrounding scenery around the playable ground, and the game's
- * own map screen shows all of it. What it is *not* is the terrain — the terrain is the middle half of
- * each axis (`IngameMap:new`'s `mapExtensionScaleFactor` 0.5 and `mapExtensionOffsetX/Z` 0.25) — so
- * the app places this image across `MapOverview.SPAN` of its normalized terrain frame rather than
- * over `[0,1]`, and the ground-layer rasters that do cover exactly the terrain sit on top of it.
- *
- * This briefly cropped the border off instead, which is the same fact answered the other way: cut it
- * out here, and a panned or zoomed-out map ends in a hard square edge against the panel background.
- * Placing it is better than cutting it, and it keeps the decision in the one place that knows how
- * much of the box is on screen.
- *
- * The crop before *that* was to the PDA's declared `width`/`height`, which are the world in meters
- * and not pixels at all — see [net.vertexdezign.vdt.model.Pda].
  */
 object ImagePipeline {
   fun process(data: ByteArray, filename: String): Pair<ByteArray, String> {

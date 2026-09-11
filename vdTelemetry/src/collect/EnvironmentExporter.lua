@@ -40,8 +40,8 @@ function VDT.EnvironmentExporter.collect(pda)
     },
   }
 
-  -- pda / player position: the player position is always present; filename/width/height only when
-  -- the map actually ships a PDA image.
+  -- pda / player position: the player position is always present; the filename only when the map
+  -- actually ships a PDA image.
   --
   -- The heading rides along with the position: the HUD map refreshes playerRotation (the local
   -- player's yaw, radians) in the same updatePlayerPosition() pass that produces the normalized
@@ -64,8 +64,6 @@ function VDT.EnvironmentExporter.collect(pda)
   end
   if pda ~= nil then
     pdaModel.filename = pda.filename
-    pdaModel.width = pda.width
-    pdaModel.height = pda.height
   end
   model.pda = pdaModel
 
