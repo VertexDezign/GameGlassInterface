@@ -92,7 +92,19 @@ The setting that always works, and is worth doing on a tablet that lives in the 
 Display & Brightness → Auto-Lock → Never* on iOS, *Settings → Display → Screen timeout* on Android.
 It's on a charger up there anyway.
 
-## 4. Check that data arrives
+## 4. Switch the export on
+
+The mod ships with its export **off**, so that having it in the folder costs a session nothing until
+someone actually wants the data. Turn it on once and it stays on.
+
+In the game: *Settings → General Settings*, scroll down to **VDTelemetry**, and switch **Export
+enabled** on. It applies immediately — nothing to restart.
+
+The setting belongs to your game installation rather than to a savegame, so you do this once per PC.
+In multiplayer that means only the players who want a dashboard switch it on; the others carry no
+cost, since each client writes its own files on its own machine.
+
+## 5. Check that data arrives
 
 Load a savegame and get into a vehicle. The dashboard should fill within a second or two.
 
@@ -111,7 +123,8 @@ Work down this list; it's ordered by how often each one is the answer.
 
 **The dashboard loads but shows no data**
 
-1. **Is the export on?** In game: *Settings → General Settings*, find **VDTelemetry** and check that
+1. **Is the export on?** It starts off, so this is the usual answer on a fresh install — step 4
+   above. In game: *Settings → General Settings*, find **VDTelemetry** and check that
    **Export enabled** is on.
 2. **Is FS25_additionalInputs installed and enabled?** Without it, VDTelemetry disables itself
    silently — there is no in-game message yet. Check the game's `log.txt` for:
@@ -142,8 +155,8 @@ The folder you want is the one containing `modSettings`, `mods` and `savegame1`.
 
 In game, under *Settings → General Settings → VDTelemetry*:
 
-- **Export enabled** — the master switch. Turning it off deletes the exported files, so the terminal
-  can tell that it stopped rather than showing stale data.
+- **Export enabled** — the master switch, and off until you turn it on. Turning it off again deletes
+  the exported files, so the terminal can tell that it stopped rather than showing stale data.
 - **Write interval** — how often the vehicle data is written. 100 ms is the smoothest; raise it if
   you want fewer writes. At 100 ms this is roughly 140 MB an hour — small next to what a modern SSD
   is rated for, but if you'd rather it never touched the drive at all, the mod's readme has
