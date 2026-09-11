@@ -525,11 +525,13 @@ fun main() {
             ?.pda
             ?.filename
         if (filename.isNullOrBlank()) {
+          log.warn("PDA / filename not available")
           call.respondText("PDA / filename not available", status = HttpStatusCode.NotFound)
           return@get
         }
         val asset = AssetResolver.resolve(Config.gameDir(), filename)
         if (asset == null) {
+          log.warn("Image not found: $filename")
           call.respondText("Image not found: $filename", status = HttpStatusCode.NotFound)
           return@get
         }
