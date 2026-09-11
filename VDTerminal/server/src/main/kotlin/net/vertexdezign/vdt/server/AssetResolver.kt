@@ -5,18 +5,22 @@ import java.nio.file.Path
 import java.util.zip.ZipFile
 import kotlin.io.path.Path
 import kotlin.io.path.exists
+import kotlin.io.path.isRegularFile
 import kotlin.io.path.readBytes
 
 class ResolvedAsset(val bytes: ByteArray, val path: Path)
 
 /**
- * Resolves a map/PDA asset path to bytes. Port of `assets.go`, plus Proton drive-letter mapping:
+ * Resolves a map/PDA asset path to bytes:
  *  0. if the path is a Windows drive-letter path (e.g. `S:/common/…`, as the game writes under
  *     Proton on Linux), translate the drive via the Proton prefix's `dosdevices/<letter>:` symlink;
- *  1. absolute path, or gameDir-relative;
- *  2. if the path points inside `mods/<mod>/…`, try `mods/<mod>.zip` (by entry name);
- *  3. then the unpacked `mods/<mod>/…` folder;
- *  4. finally the resolved path as-is.
+ *  1. look the path up: the file itself, or — since the engine reports a zipped mod's assets as if
+ *     the zip were a folder — an entry in the `.zip` beside one of its ancestors;
+ *  2. failing that, if the path runs through a `mods/` folder, re-anchor it onto `<gameDir>/mods`
+ *     and look that up the same way.
+ *
+ * Step 2 exists only for a path we can't reach as reported: a relative one, or an absolute one from
+ * a game folder that isn't the one this server is pointed at.
  */
 object AssetResolver {
   private val driveLetterPath = Regex("""^([A-Za-z]):[\\/](.*)$""")
@@ -25,41 +29,67 @@ object AssetResolver {
     val resolved: Path =
       translateDrivePath(filename, gameDir)
         ?: Path(filename).let { if (it.isAbsolute) it else gameDir.resolve(filename) }
-    val resolvedStr = resolved.toString()
 
-    val marker = markerIn(resolvedStr)
-    if (marker != null) {
-      val modPart = resolvedStr.substringAfter(marker)
-      val modName = modPart.substringBefore(File.separatorChar).substringBefore('/')
-      if (modName.isNotEmpty() && modPart.length > modName.length) {
-        val restOfPath = modPart.substring(modName.length + 1)
-        val modsDir = gameDir.resolve("mods")
-        val zipPath = modsDir.resolve("$modName.zip")
-        val entryName = restOfPath.replace('\\', '/')
+    lookUp(resolved)?.let { return it }
+    return reanchorInGameMods(gameDir, resolved.toString())?.let { lookUp(it) }
+  }
 
-        if (zipPath.exists()) {
-          runCatching {
-            ZipFile(zipPath.toFile()).use { zip ->
-              val entry =
-                zip
-                  .entries()
-                  .asSequence()
-                  .firstOrNull { it.name.replace('\\', '/') == entryName }
-              if (entry != null) {
-                return ResolvedAsset(zip.getInputStream(entry).use { it.readBytes() }, resolved)
-              }
-            }
-          }
+  /** The file itself if it is one, else the zipped mod it pretends to be a folder in. */
+  private fun lookUp(path: Path): ResolvedAsset? {
+    // A real file at the path wins: nothing else can be more right than the path itself.
+    if (path.isRegularFile()) return ResolvedAsset(path.readBytes(), path)
+    return zipAncestorAsset(path)
+  }
+
+  /**
+   * `…/mods/<mod>/<rest>` under OUR game folder, for a path that named someone else's: a relative
+   * path, or an absolute one from a differently-installed game (a moved `My Games` folder, a
+   * savegame carried over from another machine). Null when the path has no `mods/` in it — a mod
+   * loaded from anywhere else can only ever be found where it said it was.
+   */
+  private fun reanchorInGameMods(gameDir: Path, path: String): Path? {
+    val marker = markerIn(path) ?: return null
+    val modPart = path.substringAfter(marker)
+    val modName = modPart.substringBefore(File.separatorChar).substringBefore('/')
+    if (modName.isEmpty() || modPart.length <= modName.length) return null
+    return gameDir.resolve("mods").resolve(modName).resolve(modPart.substring(modName.length + 1))
+  }
+
+  /**
+   * A zipped mod, unpacked only in the engine's eyes: `…/FS25_Map/maps/overview.dds` is really
+   * `maps/overview.dds` inside `…/FS25_Map.zip`. Walks the path's ancestors outward and, for the
+   * first one that is (or has beside it) a readable zip, returns the remainder as an entry —
+   * whatever directory the mod was loaded from, `mods/` or not.
+   */
+  private fun zipAncestorAsset(resolved: Path): ResolvedAsset? {
+    var dir = resolved.parent
+    while (dir != null) {
+      val name = dir.fileName // null on a filesystem root, which is never a mod folder
+      val entryName = runCatching { dir.relativize(resolved).toString() }.getOrNull()
+      if (name != null && !entryName.isNullOrEmpty()) {
+        // Both spellings the engine can hand us: the zip named like the folder it pretends to be,
+        // and — should it ever report the archive itself as a directory — the `.zip` segment as-is.
+        for (zip in listOf(dir.resolveSibling("$name.zip"), dir)) {
+          if (!zip.isRegularFile()) continue
+          readZipEntry(zip, entryName.replace('\\', '/'))?.let { return ResolvedAsset(it, zip) }
         }
-
-        val folderFile = modsDir.resolve(modName).resolve(restOfPath)
-        if (folderFile.exists()) return ResolvedAsset(folderFile.readBytes(), folderFile)
       }
+      dir = dir.parent
     }
-
-    if (resolved.exists()) return ResolvedAsset(resolved.readBytes(), resolved)
     return null
   }
+
+  /** Bytes of [entryName] in [zipPath], or null when the zip can't be read or has no such entry. */
+  private fun readZipEntry(zipPath: Path, entryName: String): ByteArray? = runCatching {
+    ZipFile(zipPath.toFile()).use { zip ->
+      val entry =
+        zip
+          .entries()
+          .asSequence()
+          .firstOrNull { it.name.replace('\\', '/') == entryName }
+      entry?.let { zip.getInputStream(it).use { stream -> stream.readBytes() } }
+    }
+  }.getOrNull()
 
   private fun markerIn(path: String): String? = when {
     path.contains("mods${File.separatorChar}") -> "mods${File.separatorChar}"
