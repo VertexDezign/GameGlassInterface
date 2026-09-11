@@ -270,7 +270,11 @@ VDTelemetry.TELEMETRY_CHANNEL = "telemetry"
 --     load where that number is real. Plus `harvest.combineXp` when FS25_CombineXP is installed:
 --     throughput, yield and drum load off the mod's own measurement, its high-moisture flag, and the
 --     speed its limiter is allowing. See issue #139.
-VDTelemetry.VERSION = 22
+-- 23: `environment.pda` no longer carries `width`/`height`. They were map.xml's `map#width`, which
+--     the engine documents as the width of the *world* in meters -- never the overview image's pixel
+--     size, which is what a reader would take them for. Nothing consumed them: the terminal places
+--     the picture by proportion, and the world size it does use is map.json's `terrainSize`.
+VDTelemetry.VERSION = 23
 VDTelemetry.SETTINGS_XML = "vdTelemetrySettings.xml"
 VDTelemetry.SETTINGS_XML_VERSION = 3
 -- Everything lives under modSettings/<modName>/: the settings XML at its root and the telemetry

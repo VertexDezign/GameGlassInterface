@@ -85,8 +85,6 @@ class VdtModelTest {
     // pda / map data
     val pda = assertNotNull(data.environment?.pda)
     assertEquals("S:/common/Farming Simulator 25/data/maps/mapUS/textures/ui/overview.dds", pda.filename)
-    assertEquals(2048, pda.width)
-    assertEquals(2048, pda.height)
     assertEquals(0.4532542f, pda.player?.posX)
     assertEquals(0.42799774f, pda.player?.posZ)
     assertEquals(91, pda.player?.heading)

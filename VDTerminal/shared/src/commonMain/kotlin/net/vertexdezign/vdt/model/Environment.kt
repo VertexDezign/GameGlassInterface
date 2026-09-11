@@ -17,16 +17,10 @@ data class Weather(val temperature: Temperature? = null)
 data class Temperature(val min: Int = 0, val max: Int = 0, val current: Int = 0, val unit: String = "")
 
 /**
- * PDA / map data. `filename`/`width`/`height` are absent when the mod has no PDA reference, so they
- * are optional.
+ * PDA / map data. [filename] is absent when the mod has no PDA reference, so it is optional.
  */
 @Serializable
-data class Pda(
-  val filename: String? = null,
-  val width: Int? = null,
-  val height: Int? = null,
-  val player: Player? = null,
-)
+data class Pda(val filename: String? = null, val player: Player? = null)
 
 /**
  * The map marker's subject: on foot the player, in a vehicle the vehicle it drives. [heading] uses

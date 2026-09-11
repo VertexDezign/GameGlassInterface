@@ -2,8 +2,6 @@ MapUtil = {}
 
 ---@class PDA
 ---@field filename string
----@field width number
----@field height number
 
 ---@return PDA | nil The filename to the pda or nil if not found.
 function MapUtil.getMapPDAFile()
@@ -20,8 +18,6 @@ function MapUtil.getMapPDAFile()
       local mapXML = XMLFile.loadIfExists("map", mapXMLFilename)
 
       local pdaMapFile = mapXML:getString("map#imageFilename")
-      local width = mapXML:getInt("map#width")
-      local height = mapXML:getInt("map#height")
 
       if pdaMapFile:find("$data") then
         pdaMapFile = getAppBasePath() .. pdaMapFile:sub(2)
@@ -32,11 +28,7 @@ function MapUtil.getMapPDAFile()
       if pdaMapFile:find(".png") then
         pdaMapFile = pdaMapFile:sub(0, pdaMapFile:len() - 4) .. ".dds"
       end
-      return {
-        filename = pdaMapFile,
-        width = width,
-        height = height,
-      }
+      return { filename = pdaMapFile }
     end
   end
 

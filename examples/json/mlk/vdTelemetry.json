@@ -1,0 +1,27 @@
+{
+  "version": "22",
+  "environment": {
+    "date": "01.08.2024",
+    "weather": {
+      "temperature": {
+        "min": 24,
+        "current": 27,
+        "max": 34,
+        "unit": "°C"
+      }
+    },
+    "time": "08:02",
+    "pda": {
+      "height": 4096,
+      "player": {
+        "heading": 259,
+        "posX": 0.65288631618023,
+        "farmId": 1,
+        "posZ": 0.39477953314781,
+        "headingUnit": "°"
+      },
+      "filename": "C:/users/steamuser/Documents/My Games/FarmingSimulator2025/mods/FS25_Am_MLK/maps/overview.dds",
+      "width": 4096
+    }
+  }
+}
